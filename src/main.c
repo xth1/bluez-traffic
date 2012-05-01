@@ -1,9 +1,11 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
+#include "event.h"
+#include "primitives.h"
 
 
 static gboolean
-on_expose_event(GtkWidget *widget,
+draw_event(GtkWidget *widget,
     GdkEventExpose *event,
     gpointer data)
 {
@@ -11,36 +13,18 @@ on_expose_event(GtkWidget *widget,
 
   cr = gdk_cairo_create (widget->window);
 
-  cairo_set_source_rgba(cr, 0, 0, 0, 1);
-  cairo_set_line_width(cr, 10);
+  //load events------------------------------------
+  event_t *events;
+  events=(event_t *)calloc(110,(sizeof(event_t)));
 
-  cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT);
-  cairo_move_to(cr, 30, 50);
-  cairo_line_to(cr, 150, 50);
-  cairo_stroke(cr);
+  int n;
+  n=read_events_from_file("events.txt",events);
 
-  cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-  cairo_move_to(cr, 30, 90);
-  cairo_line_to(cr, 150, 90);
-  cairo_stroke(cr);
+  point p={0,0};
+  draw_events(cr,events,n,p);
 
-  cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE);
-  cairo_move_to(cr, 30, 130);
-  cairo_line_to(cr, 150, 130);
-  cairo_stroke(cr);
 
-  cairo_set_line_width(cr, 1.5);
 
-  cairo_move_to(cr, 30, 40);
-  cairo_line_to(cr, 30, 140);
-  cairo_stroke(cr);
-
-  cairo_move_to(cr, 150, 40);
-  cairo_line_to(cr, 150, 140);
-  cairo_stroke(cr);
-
-  cairo_move_to(cr, 155, 40);
-  cairo_line_to(cr, 155, 140);
   cairo_stroke(cr);
 
   cairo_destroy(cr);
@@ -51,6 +35,7 @@ on_expose_event(GtkWidget *widget,
 
 int main (int argc, char *argv[])
 {
+
 
   GtkWidget *window;
   GtkWidget *darea;
@@ -63,16 +48,18 @@ int main (int argc, char *argv[])
   gtk_container_add(GTK_CONTAINER (window), darea);
 
   g_signal_connect(darea, "expose-event",
-      G_CALLBACK(on_expose_event), NULL);
+      G_CALLBACK(draw_event), NULL);
   g_signal_connect(window, "destroy",
       G_CALLBACK(gtk_main_quit), NULL);
 
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-  gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
+  gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
 
   gtk_widget_show_all(window);
 
   gtk_main();
 
   return 0;
+
+
 }

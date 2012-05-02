@@ -1,4 +1,4 @@
-AC_INIT([bluez_traffic], [1.0], [bug-report@address])
+AC_INIT([bluez_traffic], [1.0], [thiago.xth1@gmail.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_PROG_CC
 AC_CONFIG_HEADERS([config.h])

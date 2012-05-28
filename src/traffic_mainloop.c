@@ -1,5 +1,4 @@
-#ifndef MAINLOOP_TRAFFIC
-#define MAINLOOP_TRAFFIC
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -15,6 +14,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <getopt.h>
+#include <glib.h>
 //mainloop
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
@@ -27,61 +27,44 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/mgmt.h>
 
-
-#define MAX_EPOLL_EVENTS 10
-
-typedef void (*mainloop_destroy_func) (void *user_data);
-
-typedef void (*mainloop_event_func) (int fd, uint32_t events, void *user_data);
-typedef void (*mainloop_timeout_func) (int id, void *user_data);
-typedef void (*mainloop_signal_func) (int signum, void *user_data);
-
-
-struct mainloop_data {
-	int fd;
-	uint32_t events;
-	mainloop_event_func callback;
-	mainloop_destroy_func destroy;
-	void *user_data;
-};
-
-struct signal_data {
-	int fd;
-	sigset_t mask;
-	mainloop_signal_func callback;
-	mainloop_destroy_func destroy;
-	void *user_data;
-};
-
-
+#include "traffic_mainloop.h"
 //global variables ---------------------------
 static int epoll_fd; 
 static int epoll_terminate;
+static gpointer loop_pointer;
 
 
-static void signal_callback(int signum, void *user_data)
-{
-	
-	printf("Signal CallBack\n"); mainloop_traffic_quit();
-	switch (signum) {
-	case SIGINT:
-	case SIGTERM:
-		mainloop_traffic_quit();
-		break;
-	}
-}
+
 /*-------------------Loop---------------------*/
 
-int mainloop_traffic_init(){
+int mainloop_init(){
 	epoll_terminate=0;
 	epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+	
 }
 
-void mainloop_traffic_quit(){
+void mainloop_quit(){
 	epoll_terminate=1;
 }
+static void traffic_signal_callback(int fd, uint32_t events, void *user_data)
+{
+	struct signal_data *data = user_data;
+	struct signalfd_siginfo si;
+	ssize_t result;
 
-int mainloop_traffic_remove_fd(int fd)
+	if (events & (EPOLLERR | EPOLLHUP)) {
+		mainloop_quit();
+		return;
+	}
+
+	result = read(fd, &si, sizeof(si));
+	if (result != sizeof(si))
+		return;
+
+	if (data->callback)
+		data->callback(si.ssi_signo, data->user_data);
+}
+int mainloop_remove_fd(int fd)
 {
 	struct mainloop_data *data;
 	int err;
@@ -96,7 +79,7 @@ int mainloop_traffic_remove_fd(int fd)
 }
 
 
-int mainloop_traffic_add_monitor(int fd, uint32_t events, mainloop_event_func callback,
+int mainloop_add_monitor(int fd, uint32_t events, mainloop_event_func callback,
 				void *user_data, mainloop_destroy_func destroy){
 					
 	
@@ -136,9 +119,9 @@ int mainloop_traffic_add_monitor(int fd, uint32_t events, mainloop_event_func ca
 
 static struct signal_data *signal_data;
 
-int mainloop_traffic_run(){
-	
-	/*if (signal_data) {
+
+int mainloop_pre_run(){
+	if (signal_data) {
 		
 		if (sigprocmask(SIG_BLOCK, &signal_data->mask, NULL) < 0)
 			return 1;
@@ -148,13 +131,23 @@ int mainloop_traffic_run(){
 		if (signal_data->fd < 0)
 			return 1;
 
-		if (mainloop_traffic_add_monitor(signal_data->fd, EPOLLIN,
-				signal_callback, signal_data, NULL) < 0) {
+		if (mainloop_add_monitor(signal_data->fd, EPOLLIN,
+				traffic_signal_callback, signal_data, NULL) < 0) {
 			close(signal_data->fd);
 			return 1;
 		}
-	}*/
-	//while (!epoll_terminate) {
+	}
+	
+}
+
+gboolean  mainloop_run(gpointer data){
+	
+		
+		if(epoll_terminate){
+			g_main_loop_quit( (GMainLoop*)data );
+			return FALSE;
+		}
+		loop_pointer=data;
 		
 		struct epoll_event events[MAX_EPOLL_EVENTS];
 		int n, nfds;
@@ -170,11 +163,11 @@ int mainloop_traffic_run(){
 			data->callback(data->fd, events[n].events,
 							data->user_data);
 		}
-	//}
-	return 0;
+		 
+	return TRUE;
 }
 
-int mainloop_traffic_set_signal(sigset_t *mask, mainloop_signal_func callback,
+int mainloop_set_signal(sigset_t *mask, mainloop_signal_func callback,
 				void *user_data, mainloop_destroy_func destroy)
 {
 	struct signal_data *data;
@@ -199,6 +192,4 @@ int mainloop_traffic_set_signal(sigset_t *mask, mainloop_signal_func callback,
 
 	return 0;
 }
-
-#endif
 

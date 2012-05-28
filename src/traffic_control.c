@@ -1,24 +1,33 @@
-#ifndef CONTROL_TRAFFIC
-#define CONTROL_TRAFFIC
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+#include <sys/time.h>
+#include <getopt.h>
+#include <glib.h>
+//mainloop
+#include <sys/signalfd.h>
+#include <sys/timerfd.h>
+#include <sys/epoll.h>
+
+#include <signal.h>
+//bluetooth
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
 
 
-//main loop
-#include "mainloop_traffic.h"
+#include "traffic_mainloop.h"
 
-
-
-//Filters (from packet.h) ------------------------------------
-
-#define PACKET_FILTER_SHOW_INDEX	(1 << 0)
-#define PACKET_FILTER_SHOW_DATE		(1 << 1)
-#define PACKET_FILTER_SHOW_TIME		(1 << 2)
-#define PACKET_FILTER_SHOW_ACL_DATA	(1 << 3)
-#define PACKET_FILTER_SHOW_SCO_DATA	(1 << 4)
-
-struct control_data {
-	uint16_t channel;
-	int fd;
-};
+#include "traffic_packet.h"
 
 /* Auxiliar functions */
 
@@ -35,13 +44,7 @@ static void free_data(void *user_data)
 
 /*------------------CallBack-----------------------------*/
 
-void monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
-					const void *data, uint16_t size){
-						
 
-printf("Packet Monitor: %d %d\n",index,opcode);
-
-}
 
 static void data_callback(int fd, uint32_t events, void *user_data)
 {
@@ -53,20 +56,21 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 	struct iovec iov[2];
 
 	if (events & (EPOLLERR | EPOLLHUP)) {
-		mainloop_traffic_remove_fd(fd);
+		mainloop_remove_fd(fd);
 		return;
 	}
 
-	iov[0].iov_base = &hdr;
-	iov[0].iov_len = MGMT_HDR_SIZE;
-	iov[1].iov_base = buf;
-	iov[1].iov_len = sizeof(buf);
+	iov[0].iov_base = &hdr; /* Starting address */
+	iov[0].iov_len = MGMT_HDR_SIZE; ; /* Size */
+	iov[1].iov_base = buf; /* Starting address */
+	iov[1].iov_len = sizeof(buf); /* Size */
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_iov = iov;
 	msg.msg_iovlen = 2;
 	msg.msg_control = control;
 	msg.msg_controllen = sizeof(control);
+	
 	
 	//catch all messages from bluetooth socket
 	while (1) {
@@ -75,7 +79,7 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		uint16_t opcode, index, pktlen;
 		ssize_t len;
 		
-		
+		/* docs in http://linux.die.net/man/2/recvmsg*/
 		len = recvmsg(fd, &msg, MSG_DONTWAIT);
 		if (len < 0)
 			break;
@@ -83,6 +87,8 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		if (len < MGMT_HDR_SIZE)
 			break;
 
+		
+		/*search field with type SCM_TIMESTAMP at msg_control from msg*/
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
 					cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 			if (cmsg->cmsg_level != SOL_SOCKET)
@@ -164,7 +170,7 @@ static int open_channel(uint16_t channel)
 		return -1;
 	}
 	
-	mainloop_traffic_add_monitor(data->fd, EPOLLIN, data_callback, data, free_data);
+	mainloop_add_monitor(data->fd, EPOLLIN, data_callback, data, free_data);
 
 	return 0;
 }
@@ -175,7 +181,6 @@ int tracing(void)
 		return -1;
 	}
 	open_channel(HCI_CHANNEL_CONTROL);
-
+	mainloop_pre_run();
 	return 0;
 }
-#endif

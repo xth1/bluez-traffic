@@ -1,65 +1,71 @@
-#include <cairo.h>
-#include <gtk/gtk.h>
-#include "event.h"
-#include "primitives.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+#include <sys/time.h>
+#include <getopt.h>
+#include <glib.h>
+//mainloop
+#include <sys/signalfd.h>
+#include <sys/timerfd.h>
+#include <sys/epoll.h>
+#include <signal.h>
+//bluetooth
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
 
 
-static gboolean
-draw_event(GtkWidget *widget,
-    GdkEventExpose *event,
-    gpointer data)
+#include "traffic_mainloop.h"
+#include "traffic_packet.h"
+#include "traffic_control.h"
+
+#include <glib.h>
+
+#define MAINLOOP_INTERVAL 100
+
+static void signal_callback(int signum, void *user_data)
 {
-  cairo_t *cr;
-
-  cr = gdk_cairo_create (widget->window);
-
-  //load events------------------------------------
-  event_t *events;
-  events=(event_t *)calloc(110,(sizeof(event_t)));
-
-  int n;
-  n=read_events_from_file("events.txt",events);
-
-  point p={0,0};
-  draw_events(cr,events,n,p);
-
-
-
-  cairo_stroke(cr);
-
-  cairo_destroy(cr);
-
-  return FALSE;
+	
+	mainloop_quit();
+	switch (signum) {
+	case SIGINT:
+	case SIGTERM:
+		mainloop_quit();
+		break;
+	}
 }
 
+int main(){
+	
+	sigset_t mask;
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGINT);
+	sigaddset(&mask, SIGTERM);
 
-int main (int argc, char *argv[])
-{
+	mainloop_set_signal(&mask, signal_callback, NULL, NULL);
+	
+	mainloop_init();
+	
+	tracing();
+	
+	GMainLoop *loop;
 
+    loop = g_main_loop_new ( NULL , FALSE );
 
-  GtkWidget *window;
-  GtkWidget *darea;
-
-  gtk_init(&argc, &argv);
-
-  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
-  darea = gtk_drawing_area_new ();
-  gtk_container_add(GTK_CONTAINER (window), darea);
-
-  g_signal_connect(darea, "expose-event",
-      G_CALLBACK(draw_event), NULL);
-  g_signal_connect(window, "destroy",
-      G_CALLBACK(gtk_main_quit), NULL);
-
-  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-  gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
-
-  gtk_widget_show_all(window);
-
-  gtk_main();
-
-  return 0;
-
-
+    g_timeout_add (MAINLOOP_INTERVAL ,mainloop_run , loop); 
+    g_main_loop_run (loop);
+    g_main_loop_unref(loop);
+	
+	
+	return 0;
+	
 }

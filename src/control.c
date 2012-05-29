@@ -1,3 +1,26 @@
+/*
+ *
+ *  BlueZ - Bluetooth protocol stack for Linux
+ *
+ *  Copyright (C) 2011-2012  Intel Corporation
+ *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
+ *
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -13,23 +36,19 @@
 #include <sys/time.h>
 #include <getopt.h>
 #include <glib.h>
-//mainloop
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
 #include <sys/epoll.h>
-
 #include <signal.h>
-//bluetooth
+/*bluetooth*/
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include <bluetooth/mgmt.h>
 
-
-#include "traffic_mainloop.h"
-
-#include "traffic_packet.h"
-
-/* Auxiliar functions */
+#include "mainloop.h"
+#include "packet.h"
+#include "control.h"
 
 static void free_data(void *user_data)
 {
@@ -39,12 +58,6 @@ static void free_data(void *user_data)
 
 	free(data);
 }
-
-
-
-/*------------------CallBack-----------------------------*/
-
-
 
 static void data_callback(int fd, uint32_t events, void *user_data)
 {
@@ -71,8 +84,7 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 	msg.msg_control = control;
 	msg.msg_controllen = sizeof(control);
 	
-	
-	//catch all messages from bluetooth socket
+	/*catch all messages from bluetooth socket*/
 	while (1) {
 		struct cmsghdr *cmsg;
 		struct timeval *tv = NULL;
@@ -86,8 +98,7 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 
 		if (len < MGMT_HDR_SIZE)
 			break;
-
-		
+	
 		/*search field with type SCM_TIMESTAMP at msg_control from msg*/
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
 					cmsg = CMSG_NXTHDR(&msg, cmsg)) {
@@ -107,14 +118,11 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 			break;
 			*/ 
 		case HCI_CHANNEL_MONITOR:
-			monitor(tv, index, opcode, buf, pktlen);
+			packet_monitor(tv, index, opcode, buf, pktlen);
 			break;
 		}
-
 	}
 }
-
-/*------------------Socket--------------------------------*/
 
 static int open_socket(uint16_t channel)
 {
@@ -151,7 +159,6 @@ static int open_socket(uint16_t channel)
 
 	return fd;
 }
-
 
 static int open_channel(uint16_t channel)
 {

@@ -1,4 +1,26 @@
-
+/*
+ *
+ *  BlueZ - Bluetooth protocol stack for Linux
+ *
+ *  Copyright (C) 2011-2012  Intel Corporation
+ *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
+ *
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -15,37 +37,36 @@
 #include <sys/time.h>
 #include <getopt.h>
 #include <glib.h>
-//mainloop
+/*mainloop*/
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
 #include <sys/epoll.h>
 
 #include <signal.h>
-//bluetooth
+/*bluetooth*/
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/mgmt.h>
 
-#include "traffic_mainloop.h"
-//global variables ---------------------------
+#include "mainloop.h"
+
 static int epoll_fd; 
 static int epoll_terminate;
 static gpointer loop_pointer;
 
-
-
-/*-------------------Loop---------------------*/
+static struct signal_data *signal_data;
 
 int mainloop_init(){
 	epoll_terminate=0;
 	epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-	
+	return 0;
 }
 
 void mainloop_quit(){
 	epoll_terminate=1;
 }
+
 static void traffic_signal_callback(int fd, uint32_t events, void *user_data)
 {
 	struct signal_data *data = user_data;
@@ -64,9 +85,9 @@ static void traffic_signal_callback(int fd, uint32_t events, void *user_data)
 	if (data->callback)
 		data->callback(si.ssi_signo, data->user_data);
 }
+
 int mainloop_remove_fd(int fd)
 {
-	struct mainloop_data *data;
 	int err;
 
 	if (fd < 0 )
@@ -78,7 +99,6 @@ int mainloop_remove_fd(int fd)
 	return err;
 }
 
-
 int mainloop_add_monitor(int fd, uint32_t events, mainloop_event_func callback,
 				void *user_data, mainloop_destroy_func destroy){
 					
@@ -87,13 +107,10 @@ int mainloop_add_monitor(int fd, uint32_t events, mainloop_event_func callback,
 	struct epoll_event ev;
 	int err;
 
-//	if (fd < 0 || fd > MAX_MAINLOOP_ENTRIES - 1 || !callback)
-//		return -EINVAL;
-
 	data = malloc(sizeof(*data));
 	if (!data)
 		return -ENOMEM;
-
+		
 	memset(data, 0, sizeof(*data));
 	data->fd = fd;
 	data->events = events;
@@ -112,13 +129,8 @@ int mainloop_add_monitor(int fd, uint32_t events, mainloop_event_func callback,
 		return err;
 	}
 
-
 	return 0;
 }
-
-
-static struct signal_data *signal_data;
-
 
 int mainloop_pre_run(){
 	if (signal_data) {
@@ -137,20 +149,21 @@ int mainloop_pre_run(){
 			return 1;
 		}
 	}
+	return 0;
 	
 }
 
 gboolean  mainloop_run(gpointer data){
 	
-		
+		struct epoll_event events[MAX_EPOLL_EVENTS];
+		int n, nfds;
 		if(epoll_terminate){
 			g_main_loop_quit( (GMainLoop*)data );
 			return FALSE;
 		}
 		loop_pointer=data;
 		
-		struct epoll_event events[MAX_EPOLL_EVENTS];
-		int n, nfds;
+		
 
 		 nfds = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
 		if (nfds < 0)
@@ -192,4 +205,3 @@ int mainloop_set_signal(sigset_t *mask, mainloop_signal_func callback,
 
 	return 0;
 }
-

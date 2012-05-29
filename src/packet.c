@@ -34,51 +34,17 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/time.h>
-#include <getopt.h>
-#include <glib.h>
-#include <sys/signalfd.h>
-#include <sys/timerfd.h>
-#include <sys/epoll.h>
-#include <signal.h>
-/*bluetooth*/
+
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include <bluetooth/mgmt.h>
 
-#include "mainloop.h"
 #include "packet.h"
-#include "control.h"
 
-#include <glib.h>
-
-#define MAINLOOP_INTERVAL 100
-
-static void signal_callback(int signum, void *user_data)
-{
-	mainloop_quit();
-	switch (signum) {
-	case SIGINT:
-	case SIGTERM:
-		mainloop_quit();
-		break;
-	}
-}
-
-int main(){
-	GMainLoop *loop;
-	sigset_t mask;
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	sigaddset(&mask, SIGTERM);
-
-	mainloop_set_signal(&mask, signal_callback, NULL, NULL);
-	mainloop_init();
-	tracing();
+void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
+					const void *data, uint16_t size)
+{					
 	
-    loop = g_main_loop_new ( NULL , FALSE );
-    g_timeout_add (MAINLOOP_INTERVAL ,mainloop_run , loop); 
-    g_main_loop_run (loop);
-    g_main_loop_unref(loop);
-	
-	return 0;
+	printf("OPCODE %d\n",opcode);
 }

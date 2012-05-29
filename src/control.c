@@ -83,22 +83,21 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 	msg.msg_iovlen = 2;
 	msg.msg_control = control;
 	msg.msg_controllen = sizeof(control);
-	
+
 	/*catch all messages from bluetooth socket*/
 	while (1) {
 		struct cmsghdr *cmsg;
 		struct timeval *tv = NULL;
 		uint16_t opcode, index, pktlen;
 		ssize_t len;
-		
-		/* docs in http://linux.die.net/man/2/recvmsg*/
+
 		len = recvmsg(fd, &msg, MSG_DONTWAIT);
 		if (len < 0)
 			break;
 
 		if (len < MGMT_HDR_SIZE)
 			break;
-	
+
 		/*search field with type SCM_TIMESTAMP at msg_control from msg*/
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
 					cmsg = CMSG_NXTHDR(&msg, cmsg)) {
@@ -112,11 +111,11 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		index  = btohs(hdr.index);
 		pktlen = btohs(hdr.len);
 		switch (data->channel) {
-		/*this feature is not supported yet */ 
+		/*this feature is not supported yet */
 		/*case HCI_CHANNEL_CONTROL:
 			packet_control(tv, index, opcode, buf, pktlen);
 			break;
-			*/ 
+			*/
 		case HCI_CHANNEL_MONITOR:
 			packet_monitor(tv, index, opcode, buf, pktlen);
 			break;
@@ -176,7 +175,7 @@ static int open_channel(uint16_t channel)
 		free(data);
 		return -1;
 	}
-	
+
 	mainloop_add_monitor(data->fd, EPOLLIN, data_callback, data, free_data);
 
 	return 0;

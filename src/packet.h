@@ -22,7 +22,7 @@
  *
  */
 
-#ifndef TRAFFIC_PACKET_H 
+#ifndef TRAFFIC_PACKET_H
 #define TRAFFIC_PACKET_H
 
 #define PACKET_FILTER_SHOW_INDEX	(1 << 0)

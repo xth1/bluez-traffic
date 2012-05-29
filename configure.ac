@@ -50,4 +50,4 @@ PKG_CHECK_MODULES(BLUEZ, bluez >= 4.99, dummy=yes,
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile)

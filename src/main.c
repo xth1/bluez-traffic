@@ -74,11 +74,11 @@ int main(){
 	mainloop_set_signal(&mask, signal_callback, NULL, NULL);
 	mainloop_init();
 	tracing();
-	
-    loop = g_main_loop_new ( NULL , FALSE );
-    g_timeout_add (MAINLOOP_INTERVAL ,mainloop_run , loop); 
-    g_main_loop_run (loop);
-    g_main_loop_unref(loop);
-	
+
+	loop = g_main_loop_new ( NULL , FALSE );
+	g_timeout_add (MAINLOOP_INTERVAL ,mainloop_run , loop);
+	g_main_loop_run (loop);
+	g_main_loop_unref(loop);
+
 	return 0;
 }

@@ -46,82 +46,11 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/mgmt.h>
 
-#include "mainloop.h"
+//#include "mainloop.h"
 #include "packet.h"
 #include "control.h"
+#include "io_channel.h"
 
-static void free_data(void *user_data)
-{
-	struct control_data *data = user_data;
-
-	close(data->fd);
-
-	free(data);
-}
-
-static void data_callback(int fd, uint32_t events, void *user_data)
-{
-	struct control_data *data = user_data;
-	unsigned char buf[HCI_MAX_FRAME_SIZE];
-	unsigned char control[32];
-	struct mgmt_hdr hdr;
-	struct msghdr msg;
-	struct iovec iov[2];
-
-	if (events & (EPOLLERR | EPOLLHUP)) {
-		mainloop_remove_fd(fd);
-		return;
-	}
-
-	iov[0].iov_base = &hdr; /* Starting address */
-	iov[0].iov_len = MGMT_HDR_SIZE; ; /* Size */
-	iov[1].iov_base = buf; /* Starting address */
-	iov[1].iov_len = sizeof(buf); /* Size */
-
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_iov = iov;
-	msg.msg_iovlen = 2;
-	msg.msg_control = control;
-	msg.msg_controllen = sizeof(control);
-
-	/*catch all messages from bluetooth socket*/
-	while (1) {
-		struct cmsghdr *cmsg;
-		struct timeval *tv = NULL;
-		uint16_t opcode, index, pktlen;
-		ssize_t len;
-
-		len = recvmsg(fd, &msg, MSG_DONTWAIT);
-		if (len < 0)
-			break;
-
-		if (len < MGMT_HDR_SIZE)
-			break;
-
-		/*search field with type SCM_TIMESTAMP at msg_control from msg*/
-		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
-					cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-			if (cmsg->cmsg_level != SOL_SOCKET)
-				continue;
-
-			if (cmsg->cmsg_type == SCM_TIMESTAMP)
-				tv = (struct timeval *) CMSG_DATA(cmsg);
-		}
-		opcode = btohs(hdr.opcode);
-		index  = btohs(hdr.index);
-		pktlen = btohs(hdr.len);
-		switch (data->channel) {
-		/*this feature is not supported yet */
-		/*case HCI_CHANNEL_CONTROL:
-			packet_control(tv, index, opcode, buf, pktlen);
-			break;
-			*/
-		case HCI_CHANNEL_MONITOR:
-			packet_monitor(tv, index, opcode, buf, pktlen);
-			break;
-		}
-	}
-}
 
 static int open_socket(uint16_t channel)
 {
@@ -176,7 +105,7 @@ static int open_channel(uint16_t channel)
 		return -1;
 	}
 
-	mainloop_add_monitor(data->fd, EPOLLIN, data_callback, data, free_data);
+	create_io_channel(data->fd);
 
 	return 0;
 }
@@ -187,6 +116,5 @@ int tracing(void)
 		return -1;
 	}
 	open_channel(HCI_CHANNEL_CONTROL);
-	mainloop_pre_run();
 	return 0;
 }

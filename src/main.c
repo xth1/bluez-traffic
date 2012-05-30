@@ -45,40 +45,15 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 
-//#include "mainloop.h"
+#include <glib.h>
+
 #include "packet.h"
 #include "control.h"
 
-#include <glib.h>
 
-#define MAINLOOP_INTERVAL 100
-
-/*static void signal_callback(int signum, void *user_data)
+int main()
 {
-	mainloop_quit();
-	switch (signum) {
-	case SIGINT:
-	case SIGTERM:
-		mainloop_quit();
-		break;
-	}
-}
-*/
-int main(){
-	//GMainLoop *loop;
-	sigset_t mask;
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	sigaddset(&mask, SIGTERM);
-
-	//mainloop_set_signal(&mask, signal_callback, NULL, NULL);
-	//mainloop_init();
 	tracing();
 
-	/*loop = g_main_loop_new ( NULL , FALSE );
-	g_timeout_add (MAINLOOP_INTERVAL ,mainloop_run , loop);
-	g_main_loop_run (loop);
-	g_main_loop_unref(loop);
-*/
 	return 0;
 }

@@ -51,6 +51,69 @@
 #include "control.h"
 #include "io_channel.h"
 
+static void data_callback(int fd, uint32_t events, void *user_data)
+{
+	struct control_data *data = user_data;
+	unsigned char buf[HCI_MAX_FRAME_SIZE];
+	unsigned char control[32];
+	struct mgmt_hdr hdr;
+	struct msghdr msg;
+	struct iovec iov[2];
+
+	if (events & (EPOLLERR | EPOLLHUP)) {
+	/*	mainloop_remove_fd(fd); */
+		printf("should remove fd\n");
+		return;
+	}
+
+	iov[0].iov_base = &hdr;
+	iov[0].iov_len = MGMT_HDR_SIZE;
+	iov[1].iov_base = buf;
+	iov[1].iov_len = sizeof(buf);
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_iov = iov;
+	msg.msg_iovlen = 2;
+	msg.msg_control = control;
+	msg.msg_controllen = sizeof(control);
+
+	while (1) {
+		struct cmsghdr *cmsg;
+		struct timeval *tv = NULL;
+		uint16_t opcode, index, pktlen;
+		ssize_t len;
+
+		len = recvmsg(fd, &msg, MSG_DONTWAIT);
+		if (len < 0)
+			break;
+
+		if (len < MGMT_HDR_SIZE)
+			break;
+
+		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
+					cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+			if (cmsg->cmsg_level != SOL_SOCKET)
+				continue;
+
+			if (cmsg->cmsg_type == SCM_TIMESTAMP)
+				tv = (struct timeval *) CMSG_DATA(cmsg);
+		}
+
+		opcode = btohs(hdr.opcode);
+		index  = btohs(hdr.index);
+		pktlen = btohs(hdr.len);
+
+		switch (data->channel) {
+		/*case HCI_CHANNEL_CONTROL:
+			packet_control(tv, index, opcode, buf, pktlen);
+			break;
+			*/
+		case HCI_CHANNEL_MONITOR:
+			packet_monitor(tv, index, opcode, buf, pktlen);
+			break;
+		}
+	}
+}
 
 static int open_socket(uint16_t channel)
 {
@@ -105,7 +168,7 @@ static int open_channel(uint16_t channel)
 		return -1;
 	}
 
-	create_io_channel(data->fd);
+	create_io_channel(data->fd,0, data_callback, data);
 
 	return 0;
 }

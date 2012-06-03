@@ -24,51 +24,62 @@
 
 #include <glib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "io_channel.h"
 
-gboolean callback(GIOChannel *source,GIOCondition condition,gpointer data);
-void print_bytes(gchar *buf,int sz);
+typedef struct  {
+	int fd;
+	uint32_t events;
+	io_event_func callback;
+	io_destroy_func destroy;
+	GMainLoop *loop;
+	void *user_data;
+} io_data;
 
-void print_bytes(gchar *buf,int sz)
+gboolean channel_callback(GIOChannel *source,GIOCondition condition,
+		gpointer data);
+
+gboolean channel_callback(GIOChannel *source,GIOCondition events,
+		gpointer user_data)
 {
-		int i;
-		for(i=0;i<sz;i++){
-			printf("%x ",buf[i]);
-		}
-		printf("\n");
-}
 
-gboolean callback(GIOChannel *source,GIOCondition condition,gpointer data)
-{
-	GIOChannel *channel;
-	gchar buf[100];
-	gsize count=100;
-	gsize bytes_read;
-	GError *error=NULL;
+	io_data *data=(io_data*)user_data;
 
-	channel = source;
-	g_io_channel_read_chars(channel,buf,count,&bytes_read,&error);
-	if(error){
-		printf("A error happened\n");
-		return FALSE;
-	}
-	else{
-		printf("bytes read: %d\n", bytes_read);
-		print_bytes(buf,bytes_read);
-	}
+	if(events & G_IO_IN)
+		printf("IN\n");
+	if(events & G_IO_HUP)
+		printf("HUP\n");
+	if(events &  G_IO_ERR)
+		printf("ERR\n");
+
+	data->callback(data->fd,events,data->user_data);
 
 	return TRUE;
 }
 
-void create_io_channel(int fd)
+int create_io_channel(int fd,uint32_t events,io_event_func callback,
+		void *user_data)
 {
 	GMainLoop *loop;
 	GIOChannel *channel;
+	io_data *data;
 
 	channel = g_io_channel_unix_new(fd);
 	loop = g_main_loop_new(NULL,FALSE);
 
-	g_io_add_watch(channel,G_IO_IN | G_IO_HUP | G_IO_ERR,(GIOFunc)callback,loop);
+	if(events==0)
+		events=G_IO_IN | G_IO_HUP | G_IO_ERR;
+
+	data=malloc(sizeof(io_data));
+	data->fd=fd;
+	data->callback=callback;
+	data->user_data=user_data;
+	data->loop=loop;
+	data->events=events;
+
+	g_io_add_watch(channel,events,(GIOFunc)channel_callback,data);
 	g_main_loop_run(loop);
 	g_io_channel_shutdown(channel,TRUE,NULL);
+
+	return 0;
 }

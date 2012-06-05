@@ -168,7 +168,7 @@ static int open_channel(uint16_t channel)
 		return -1;
 	}
 
-	create_io_channel(data->fd,0, data_callback, data);
+	io_add_channel(data->fd,0, data_callback, data);
 
 	return 0;
 }

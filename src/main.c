@@ -49,11 +49,19 @@
 
 #include "packet.h"
 #include "control.h"
+#include "io_channel.h"
 
 
 int main()
 {
+	GMainLoop *loop;
+	io_init();
+	
 	tracing();
-
+	
+	loop=io_watch_all_channels();
+	
+	g_main_loop_run(loop);
+	
 	return 0;
 }

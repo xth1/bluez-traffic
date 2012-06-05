@@ -33,53 +33,92 @@ typedef struct  {
 	io_event_func callback;
 	io_destroy_func destroy;
 	GMainLoop *loop;
+	GSource *source;
 	void *user_data;
 } io_data;
 
-gboolean channel_callback(GIOChannel *source,GIOCondition condition,
-		gpointer data);
+gboolean io_channel_callback(gpointer user_data);	
+			
+static GHashTable* io_watching;
+static GMainContext * io_context;
 
-gboolean channel_callback(GIOChannel *source,GIOCondition events,
-		gpointer user_data)
+gboolean io_channel_callback(gpointer user_data)
 {
+	
+	printf("callback\n");
 
 	io_data *data=(io_data*)user_data;
 
-	if(events & G_IO_IN)
-		printf("IN\n");
-	if(events & G_IO_HUP)
-		printf("HUP\n");
-	if(events &  G_IO_ERR)
-		printf("ERR\n");
-
-	data->callback(data->fd,events,data->user_data);
+	data->callback(data->fd,data->events,data->user_data);
 
 	return TRUE;
 }
+/*
+int io_watch_channel(GMainLoop *loop,io_data *data)
+{
+	
+}
+*/
+GMainLoop *io_watch_all_channels()
+{
 
-int create_io_channel(int fd,uint32_t events,io_event_func callback,
+	io_data *data;
+	GHashTableIter iter;
+	gpointer key, value;
+	GMainLoop *loop;
+	
+	
+
+	g_hash_table_iter_init (&iter, io_watching);
+	
+	io_context=g_main_context_new();
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		data=(io_data *)value;
+		g_source_attach(data->source,io_context);
+	}
+	
+	loop=g_main_loop_new(io_context,FALSE);
+	
+	printf("FIM\n");
+	//g_io_channel_shutdown(channel,TRUE,NULL);
+
+	return loop;
+	
+}
+
+int io_init(void)
+{
+	io_watching = g_hash_table_new(g_int_hash, g_int_equal);
+	return 0;
+}
+
+int io_add_channel(int fd,uint32_t events,io_event_func callback,
 		void *user_data)
 {
-	GMainLoop *loop;
+	
+	int *key=malloc(sizeof(int));
+	io_data *data=user_data;
 	GIOChannel *channel;
-	io_data *data;
-
-	channel = g_io_channel_unix_new(fd);
-	loop = g_main_loop_new(NULL,FALSE);
-
-	if(events==0)
-		events=G_IO_IN | G_IO_HUP | G_IO_ERR;
-
+	
+	*key=fd;
+	
+	channel=g_io_channel_unix_new(data->fd);
+	
 	data=malloc(sizeof(io_data));
 	data->fd=fd;
 	data->callback=callback;
 	data->user_data=user_data;
-	data->loop=loop;
+	/*data->loop=loop;*/
 	data->events=events;
-
-	g_io_add_watch(channel,events,(GIOFunc)channel_callback,data);
-	g_main_loop_run(loop);
-	g_io_channel_shutdown(channel,TRUE,NULL);
-
+	data->source=g_io_create_watch(channel,events);
+	
+	if(data->events==0)
+			data->events=G_IO_IN | G_IO_HUP | G_IO_ERR;
+	
+	g_source_set_callback(data->source,io_channel_callback,data,NULL);
+	
+	g_hash_table_insert(io_watching,key,data);
+	
 	return 0;
 }

@@ -55,11 +55,13 @@
 int main()
 {
 	GMainLoop *loop;
-	io_init();
 	
+	io_init();
 	tracing();
 	
-	loop=io_watch_all_channels();
+	loop=io_watch_all_channels();	
+	if(loop==NULL)
+		printf("An error happened: watching all channels\n");
 	
 	g_main_loop_run(loop);
 	

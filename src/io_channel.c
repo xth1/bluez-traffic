@@ -33,92 +33,171 @@ typedef struct  {
 	io_event_func callback;
 	io_destroy_func destroy;
 	GMainLoop *loop;
-	GSource *source;
+	GIOChannel *channel;
 	void *user_data;
 } io_data;
 
-gboolean io_channel_callback(gpointer user_data);	
-			
+/*FUNCTIONS HEADERS */
+gboolean channel_callback(GIOChannel *source,GIOCondition condition,
+		gpointer data);
+GMainLoop * io_create_mainloop();
+void io_destroy_channel(GIOChannel *chanel);
+
+void g_hash_table_key_destroy(gpointer data);
+void g_hash_table_value_destroy(gpointer data);
+
+/*STATIC VARIABLES */
 static GHashTable* io_watching;
 static GMainContext * io_context;
 
-gboolean io_channel_callback(gpointer user_data)
-{
-	
-	printf("callback\n");
-
-	io_data *data=(io_data*)user_data;
-
-	data->callback(data->fd,data->events,data->user_data);
-
-	return TRUE;
+/*HASH TABLE FUNCTIONS */
+void g_hash_table_key_destroy(gpointer data){
+	free(data);
 }
-/*
-int io_watch_channel(GMainLoop *loop,io_data *data)
-{
-	
-}
-*/
-GMainLoop *io_watch_all_channels()
-{
 
-	io_data *data;
-	GHashTableIter iter;
-	gpointer key, value;
+void g_hash_table_value_destroy(gpointer data){
+	io_data *r_data=(io_data *)data;
+
+	io_destroy_channel(r_data->channel);
+
+	free(r_data->channel);
+	free(r_data->user_data);
+	free(r_data);
+}
+
+
+void io_destroy_channel(GIOChannel *channel)
+{
+	g_io_channel_shutdown(channel,TRUE,NULL);
+}
+
+GMainLoop * io_create_mainloop()
+{
 	GMainLoop *loop;
-	
-	
-
-	g_hash_table_iter_init (&iter, io_watching);
-	
-	io_context=g_main_context_new();
-	while (g_hash_table_iter_next (&iter, &key, &value))
-	{
-		data=(io_data *)value;
-		g_source_attach(data->source,io_context);
-	}
-	
 	loop=g_main_loop_new(io_context,FALSE);
-	
-	printf("FIM\n");
-	//g_io_channel_shutdown(channel,TRUE,NULL);
-
 	return loop;
-	
 }
 
 int io_init(void)
 {
-	io_watching = g_hash_table_new(g_int_hash, g_int_equal);
+	io_watching = g_hash_table_new_full(g_int_hash, g_int_equal,
+	g_hash_table_key_destroy,g_hash_table_value_destroy);
+
+	free(io_context);
+	io_context=g_main_context_default();
 	return 0;
+}
+
+int io_quit(GMainLoop * loop)
+{
+	io_data *data;
+	GHashTableIter iter;
+	gpointer key, value;
+	/*g_main_loop_quit(loop);*/
+
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		data=(io_data *)value;
+		io_destroy_channel(data->channel);
+
+	}
+
+	printf("quitting...\n");
+
+	return 0;
+}
+
+
+gboolean channel_callback(GIOChannel *source,GIOCondition events,
+		gpointer user_data)
+{
+	io_data *data;
+	char *buff;
+
+	data=(io_data*)user_data;
+
+	if(events & (G_IO_ERR | G_IO_HUP)){
+		buff=events&G_IO_ERR?"G_IO_ERR":"G_IO_HUP";
+		printf("An error happened: IOChanel, %s\n",buff);
+
+		/*if(data->loop){
+			io_quit(data->loop);
+			g_main_loop_quit(data->loop);
+		}
+		*/
+
+		return FALSE;
+	}
+
+	data->callback(data->fd,events,data->user_data);
+
+	return TRUE;
+}
+
+GMainLoop *io_watch_all_channels()
+{
+	io_data *data;
+	GHashTableIter iter;
+	gpointer key, value;
+	GMainLoop *loop;
+
+	loop=io_create_mainloop();
+
+	if(loop==NULL){
+		printf("An error happened: creating mainloop\n");
+		return NULL;
+	}
+
+	g_hash_table_iter_init (&iter, io_watching);
+
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		data=(io_data *)value;
+		data->loop=loop;
+		g_io_add_watch(data->channel,data->events,channel_callback,
+		data);
+	}
+
+	return loop;
+
 }
 
 int io_add_channel(int fd,uint32_t events,io_event_func callback,
 		void *user_data)
 {
-	
 	int *key=malloc(sizeof(int));
 	io_data *data=user_data;
 	GIOChannel *channel;
-	
+
 	*key=fd;
-	
+
 	channel=g_io_channel_unix_new(data->fd);
-	
+
 	data=malloc(sizeof(io_data));
 	data->fd=fd;
 	data->callback=callback;
 	data->user_data=user_data;
-	/*data->loop=loop;*/
 	data->events=events;
-	data->source=g_io_create_watch(channel,events);
-	
-	if(data->events==0)
-			data->events=G_IO_IN | G_IO_HUP | G_IO_ERR;
-	
-	g_source_set_callback(data->source,io_channel_callback,data,NULL);
-	
+	data->channel=channel;
+
+	data->events|=G_IO_IN | G_IO_HUP | G_IO_ERR;
+
 	g_hash_table_insert(io_watching,key,data);
-	
+
 	return 0;
 }
+
+
+int io_remove_channel(int fd)
+{
+	gboolean response;
+	response=g_hash_table_remove(io_watching,&fd);
+
+	if(response==FALSE){
+		printf("An error happened: removing a key %d from hash table\n",
+		fd);
+		return 1;
+	}
+	return 0;
+}
+

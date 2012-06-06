@@ -173,11 +173,11 @@ static int open_channel(uint16_t channel)
 	return 0;
 }
 
-int tracing(void)
+int control_tracing(void)
 {
-	if (open_channel(HCI_CHANNEL_MONITOR) < 0){
+	if (open_channel(HCI_CHANNEL_MONITOR) < 0)
 		return -1;
-	}
+
 	open_channel(HCI_CHANNEL_CONTROL);
 	return 0;
 }

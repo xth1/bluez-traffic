@@ -29,6 +29,6 @@ struct control_data {
 	int fd;
 };
 
-int tracing(void);
+int control_tracing(void);
 
 #endif

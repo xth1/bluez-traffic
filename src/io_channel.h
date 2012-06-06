@@ -9,12 +9,12 @@ typedef void (*io_signal_func) (int signum, void *user_data);
 
 int io_init(void);
 
-int io_quit(GMainLoop * loop);
+int io_quit();
 
 int io_add_channel(int fd,uint32_t events,io_event_func callback,
 		void *user_data);
 
 int io_remove_channel(int fd);
 
-GMainLoop *io_watch_all_channels();
+void io_watch_all_channels();
 #endif

@@ -39,11 +39,16 @@ int main()
 	GMainLoop *loop;
 
 	io_init();
+
+	loop = g_main_loop_new(NULL, FALSE);
+	if(!loop)
+		fprintf(stderr, "Failed to create mainloop\n");
+
 	tracing();
 
-	loop=io_watch_all_channels();
-	if(loop==NULL)
-		fprintf(stderr, "An error happened: watching all channels\n");
+	io_watch_all_channels();
+
+	printf("bluez-traffic %s" VERSION);
 
 	g_main_loop_run(loop);
 

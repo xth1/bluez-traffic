@@ -32,7 +32,6 @@ typedef struct  {
 	uint32_t events;
 	io_event_func callback;
 	io_destroy_func destroy;
-	GMainLoop *loop;
 	GIOChannel *channel;
 	void *user_data;
 } io_data;
@@ -40,7 +39,6 @@ typedef struct  {
 /*FUNCTIONS HEADERS */
 gboolean channel_callback(GIOChannel *source,GIOCondition condition,
 		gpointer data);
-GMainLoop * io_create_mainloop();
 void io_destroy_channel(GIOChannel *chanel);
 
 void g_hash_table_key_destroy(gpointer data);
@@ -48,7 +46,6 @@ void g_hash_table_value_destroy(gpointer data);
 
 /*STATIC VARIABLES */
 static GHashTable* io_watching;
-static GMainContext * io_context;
 
 /*HASH TABLE FUNCTIONS */
 void g_hash_table_key_destroy(gpointer data){
@@ -71,29 +68,19 @@ void io_destroy_channel(GIOChannel *channel)
 	g_io_channel_shutdown(channel,TRUE,NULL);
 }
 
-GMainLoop * io_create_mainloop()
-{
-	GMainLoop *loop;
-	loop=g_main_loop_new(io_context,FALSE);
-	return loop;
-}
-
 int io_init(void)
 {
 	io_watching = g_hash_table_new_full(g_int_hash, g_int_equal,
 	g_hash_table_key_destroy,g_hash_table_value_destroy);
 
-	free(io_context);
-	io_context=g_main_context_default();
 	return 0;
 }
 
-int io_quit(GMainLoop * loop)
+int io_quit()
 {
 	io_data *data;
 	GHashTableIter iter;
 	gpointer key, value;
-	/*g_main_loop_quit(loop);*/
 
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
@@ -120,12 +107,6 @@ gboolean channel_callback(GIOChannel *source,GIOCondition events,
 		buff=events&G_IO_ERR?"G_IO_ERR":"G_IO_HUP";
 		printf("An error happened: IOChanel, %s\n",buff);
 
-		/*if(data->loop){
-			io_quit(data->loop);
-			g_main_loop_quit(data->loop);
-		}
-		*/
-
 		return FALSE;
 	}
 
@@ -134,31 +115,20 @@ gboolean channel_callback(GIOChannel *source,GIOCondition events,
 	return TRUE;
 }
 
-GMainLoop *io_watch_all_channels()
+void io_watch_all_channels()
 {
 	io_data *data;
 	GHashTableIter iter;
 	gpointer key, value;
-	GMainLoop *loop;
-
-	loop=io_create_mainloop();
-
-	if(loop==NULL){
-		printf("An error happened: creating mainloop\n");
-		return NULL;
-	}
 
 	g_hash_table_iter_init (&iter, io_watching);
 
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		data=(io_data *)value;
-		data->loop=loop;
 		g_io_add_watch(data->channel,data->events,channel_callback,
 		data);
 	}
-
-	return loop;
 
 }
 

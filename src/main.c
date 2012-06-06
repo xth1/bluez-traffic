@@ -26,28 +26,10 @@
 #endif
 
 #include <stdio.h>
-#include <errno.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <time.h>
-#include <sys/time.h>
-#include <getopt.h>
-#include <glib.h>
-#include <sys/signalfd.h>
-#include <sys/timerfd.h>
 #include <sys/epoll.h>
-#include <signal.h>
-/*bluetooth*/
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/hci_lib.h>
 
 #include <glib.h>
 
-#include "packet.h"
 #include "control.h"
 #include "io_channel.h"
 
@@ -55,15 +37,15 @@
 int main()
 {
 	GMainLoop *loop;
-	
+
 	io_init();
 	tracing();
-	
-	loop=io_watch_all_channels();	
+
+	loop=io_watch_all_channels();
 	if(loop==NULL)
-		printf("An error happened: watching all channels\n");
-	
+		fprintf(stderr, "An error happened: watching all channels\n");
+
 	g_main_loop_run(loop);
-	
+
 	return 0;
 }

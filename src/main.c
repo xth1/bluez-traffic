@@ -31,22 +31,16 @@
 #include <glib.h>
 
 #include "control.h"
-#include "io_channel.h"
-
 
 int main()
 {
 	GMainLoop *loop;
-
-	io_init();
 
 	loop = g_main_loop_new(NULL, FALSE);
 	if(!loop)
 		fprintf(stderr, "Failed to create mainloop\n");
 
 	control_tracing();
-
-	io_watch_all_channels();
 
 	printf("bluez-traffic %s", VERSION);
 

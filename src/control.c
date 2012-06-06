@@ -27,30 +27,35 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <ctype.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <time.h>
-#include <sys/time.h>
-#include <getopt.h>
 #include <glib.h>
-#include <sys/signalfd.h>
-#include <sys/timerfd.h>
 #include <sys/epoll.h>
+
 #include <signal.h>
-/*bluetooth*/
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
-#include <bluetooth/hci_lib.h>
 #include <bluetooth/mgmt.h>
 
-//#include "mainloop.h"
 #include "packet.h"
 #include "control.h"
-#include "io_channel.h"
 
+static guint monitor_watch;
+static guint control_watch;
+
+static gboolean data_callback(GIOChannel *io, GIOCondition cond,
+						gpointer user_data)
+{
+	struct control_data *data = user_data;
+
+	if (cond & (G_IO_ERR | G_IO_HUP))
+		/*run clean up*/
+		return FALSE;
+
+	return TRUE;
+}
+
+/*
 static void data_callback(int fd, uint32_t events, void *user_data)
 {
 	struct control_data *data = user_data;
@@ -61,7 +66,6 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 	struct iovec iov[2];
 
 	if (events & (EPOLLERR | EPOLLHUP)) {
-	/*	mainloop_remove_fd(fd); */
 		printf("should remove fd\n");
 		return;
 	}
@@ -104,16 +108,16 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		pktlen = btohs(hdr.len);
 
 		switch (data->channel) {
-		/*case HCI_CHANNEL_CONTROL:
+		case HCI_CHANNEL_CONTROL:
 			packet_control(tv, index, opcode, buf, pktlen);
 			break;
-			*/
 		case HCI_CHANNEL_MONITOR:
 			packet_monitor(tv, index, opcode, buf, pktlen);
 			break;
 		}
 	}
 }
+*/
 
 static int open_socket(uint16_t channel)
 {
@@ -151,9 +155,10 @@ static int open_socket(uint16_t channel)
 	return fd;
 }
 
-static int open_channel(uint16_t channel)
+static unsigned int open_channel(uint16_t channel)
 {
 	struct control_data *data;
+	GIOChannel *ch;
 
 	data = malloc(sizeof(*data));
 	if (!data)
@@ -168,16 +173,23 @@ static int open_channel(uint16_t channel)
 		return -1;
 	}
 
-	io_add_channel(data->fd,0, data_callback, data);
+	ch = g_io_channel_unix_new(data->fd);
 
-	return 0;
+	return g_io_add_watch(ch, G_IO_IN | G_IO_HUP | G_IO_ERR,
+							data_callback, data);
 }
 
 int control_tracing(void)
 {
-	if (open_channel(HCI_CHANNEL_MONITOR) < 0)
+	monitor_watch = open_channel(HCI_CHANNEL_MONITOR);
+	if (!monitor_watch)
 		return -1;
 
-	open_channel(HCI_CHANNEL_CONTROL);
+	control_watch = open_channel(HCI_CHANNEL_CONTROL);
+	if (control_watch) {
+		g_source_remove(monitor_watch);
+		return -1;
+	}
+
 	return 0;
 }

@@ -42,7 +42,7 @@ int main()
 
 	control_tracing();
 
-	printf("bluez-traffic %s", VERSION);
+	printf("bluez-traffic %s\n", VERSION);
 
 	g_main_loop_run(loop);
 

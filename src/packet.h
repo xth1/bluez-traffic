@@ -34,4 +34,7 @@
 
 void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size);
+
+void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
+					const void *data, uint16_t size);
 #endif

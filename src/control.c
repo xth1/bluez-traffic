@@ -46,29 +46,15 @@ static guint control_watch;
 static gboolean data_callback(GIOChannel *io, GIOCondition cond,
 						gpointer user_data)
 {
-	struct control_data *data = user_data;
-
-	if (cond & (G_IO_ERR | G_IO_HUP))
-		/*run clean up*/
-		return FALSE;
-
-	return TRUE;
-}
-
-/*
-static void data_callback(int fd, uint32_t events, void *user_data)
-{
-	struct control_data *data = user_data;
 	unsigned char buf[HCI_MAX_FRAME_SIZE];
 	unsigned char control[32];
 	struct mgmt_hdr hdr;
 	struct msghdr msg;
 	struct iovec iov[2];
-
-	if (events & (EPOLLERR | EPOLLHUP)) {
-		printf("should remove fd\n");
-		return;
-	}
+	struct control_data *data = user_data;
+	if (cond & (G_IO_ERR | G_IO_HUP))
+		/*run clean up*/
+		return FALSE;
 
 	iov[0].iov_base = &hdr;
 	iov[0].iov_len = MGMT_HDR_SIZE;
@@ -87,7 +73,7 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		uint16_t opcode, index, pktlen;
 		ssize_t len;
 
-		len = recvmsg(fd, &msg, MSG_DONTWAIT);
+		len = recvmsg(data->fd, &msg, MSG_DONTWAIT);
 		if (len < 0)
 			break;
 
@@ -111,13 +97,15 @@ static void data_callback(int fd, uint32_t events, void *user_data)
 		case HCI_CHANNEL_CONTROL:
 			packet_control(tv, index, opcode, buf, pktlen);
 			break;
+
 		case HCI_CHANNEL_MONITOR:
 			packet_monitor(tv, index, opcode, buf, pktlen);
 			break;
+
 		}
 	}
+	return TRUE;
 }
-*/
 
 static int open_socket(uint16_t channel)
 {
@@ -157,6 +145,7 @@ static int open_socket(uint16_t channel)
 
 static unsigned int open_channel(uint16_t channel)
 {
+
 	struct control_data *data;
 	GIOChannel *ch;
 
@@ -181,15 +170,17 @@ static unsigned int open_channel(uint16_t channel)
 
 int control_tracing(void)
 {
+
 	monitor_watch = open_channel(HCI_CHANNEL_MONITOR);
 	if (!monitor_watch)
 		return -1;
 
 	control_watch = open_channel(HCI_CHANNEL_CONTROL);
-	if (control_watch) {
+	if (!control_watch) {
 		g_source_remove(monitor_watch);
 		return -1;
 	}
+
 
 	return 0;
 }

@@ -41,9 +41,58 @@
 #include <bluetooth/mgmt.h>
 
 #include "packet.h"
+void packet_hexdump(const unsigned char *buf, uint16_t len);
+
+void packet_hexdump(const unsigned char *buf, uint16_t len)
+{
+	static const char hexdigits[] = "0123456789abcdef";
+	char str[68];
+	uint16_t i;
+
+	if (!len)
+		return;
+
+	for (i = 0; i < len; i++) {
+		str[((i % 16) * 3) + 0] = hexdigits[buf[i] >> 4];
+		str[((i % 16) * 3) + 1] = hexdigits[buf[i] & 0xf];
+		str[((i % 16) * 3) + 2] = ' ';
+		str[(i % 16) + 49] = isprint(buf[i]) ? buf[i] : '.';
+
+		if ((i + 1) % 16 == 0) {
+			str[47] = ' ';
+			str[48] = ' ';
+			str[65] = '\0';
+			printf("%-12c%s\n", ' ', str);
+			str[0] = ' ';
+		}
+	}
+
+	if (i % 16 > 0) {
+		uint16_t j;
+		for (j = (i % 16); j < 16; j++) {
+			str[(j * 3) + 0] = ' ';
+			str[(j * 3) + 1] = ' ';
+			str[(j * 3) + 2] = ' ';
+			str[j + 49] = ' ';
+		}
+		str[47] = ' ';
+		str[48] = ' ';
+		str[65] = '\0';
+		printf("%-12c%s\n", ' ', str);
+	}
+}
 
 void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
-	printf("OPCODE %d\n",opcode);
+	printf("Monitor channel\nOPCODE %d\n",opcode);
+
+	packet_hexdump(data,size);
+}
+
+void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
+					const void *data, uint16_t size)
+{
+	printf("Control channel\nOPCODE %d\n",opcode);
+	packet_hexdump(data,size);
 }

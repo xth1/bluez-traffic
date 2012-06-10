@@ -41,6 +41,32 @@
 #include <bluetooth/mgmt.h>
 
 #include "packet.h"
+#include "draw.h"
+
+#define MONITOR_NEW_INDEX	0
+#define MONITOR_DEL_INDEX	1
+#define MONITOR_COMMAND_PKT	2
+#define MONITOR_EVENT_PKT	3
+#define MONITOR_ACL_TX_PKT	4
+#define MONITOR_ACL_RX_PKT	5
+#define MONITOR_SCO_TX_PKT	6
+#define MONITOR_SCO_RX_PKT	7
+
+struct monitor_new_index {
+	uint8_t  type;
+	uint8_t  bus;
+	bdaddr_t bdaddr;
+	char     name[8];
+} __attribute__((packed));
+
+#define MONITOR_NEW_INDEX_SIZE 16
+
+#define MONITOR_DEL_INDEX_SIZE 0
+
+#define MAX_INDEX 16
+
+static struct monitor_new_index index_list[MAX_INDEX];
+
 void packet_hexdump(const unsigned char *buf, uint16_t len);
 
 void packet_hexdump(const unsigned char *buf, uint16_t len)
@@ -85,14 +111,51 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
+	
+	const struct monitor_new_index *ni;
+	char str[18];
+	char buff[500];
+	event_t e;
+	switch (opcode) {
+		case MONITOR_NEW_INDEX:
+			ni = data;
+
+			if (index < MAX_INDEX)
+				memcpy(&index_list[index], ni, MONITOR_NEW_INDEX_SIZE);
+
+			ba2str(&ni->bdaddr, str);
+			
+			sprintf(buff,"New Device [ %d %d %s]",ni->type,ni->bus,ni->name);
+
+			break;
+	}
+	
 	printf("Monitor channel\nOPCODE %d\n",opcode);
 
 	packet_hexdump(data,size);
+	
+	/*generate event*/
+	strcpy(e.socket_name,"MONITOR");
+	e.time=tv;
+	e.index=index;
+	/*e.data=data;*/
+	e.type=opcode;
+	add_event(e);
 }
 
 void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
+	event_t e;
+	
 	printf("Control channel\nOPCODE %d\n",opcode);
 	packet_hexdump(data,size);
+	
+	/*generate event*/
+	strcpy(e.socket_name,"CONTROL");
+	e.time=tv;
+	e.index=index;
+	/*e.data=data;*/
+	e.type=opcode;
+	add_event(e);
 }

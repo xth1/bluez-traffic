@@ -170,7 +170,6 @@ static unsigned int open_channel(uint16_t channel)
 
 int control_tracing(void)
 {
-
 	monitor_watch = open_channel(HCI_CHANNEL_MONITOR);
 	if (!monitor_watch)
 		return -1;
@@ -180,7 +179,6 @@ int control_tracing(void)
 		g_source_remove(monitor_watch);
 		return -1;
 	}
-
 
 	return 0;
 }

@@ -38,10 +38,13 @@ int main(int argc, char **argv)
 	GMainLoop *loop;
 
 	loop = g_main_loop_new(NULL, FALSE);
-	if(!loop)
+	if(!loop) {
 		fprintf(stderr, "Failed to create mainloop\n");
+		return -1;
+	}
 
-	control_tracing();
+	if (control_tracing() < 0)
+		return -1;
 
 	draw_init(argc, argv, loop);
 

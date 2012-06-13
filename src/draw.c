@@ -1,12 +1,32 @@
+/*
+ *
+ *  BlueZ - Bluetooth protocol stack for Linux
+ *
+ *  Copyright (C) 2012  Thiago da Silva Arruda <thiago.xth1@gmail.com>
+ *
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 #include <cairo.h>
 #include <gtk/gtk.h>
 #include <string.h>
 #include <glib.h>
 #include <sys/time.h>
 #include "draw.h"
-#define MAX_BUFF 512
 
-/* drawing contants */
 #define R_W 375
 #define R_H 30
 #define SPACE 10
@@ -20,7 +40,7 @@
 #define DAREA_W (WINDOW_H/2)
 #define DAREA_HEIGHT_GROW 200
 
-
+#define MAX_BUFF 512
 
 gboolean quit(GtkWidget *widget,GdkEventExpose *event,
     gpointer data);
@@ -88,7 +108,6 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
     return FALSE;
 }
 
-
 void draw_event(cairo_t *cr,event_t e,point p)
 {
 	char buff[MAX_BUFF];
@@ -110,9 +129,8 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	p.x+= SPACE;
 	p.y+= SPACE;
 
-	cairo_select_font_face(cr, "Courier",
-	CAIRO_FONT_SLANT_NORMAL,
-	CAIRO_FONT_WEIGHT_BOLD);
+	cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL,
+						CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_font_size(cr,FONT_SIZE);
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
 
@@ -120,8 +138,8 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	t = (e.time)->tv_sec;
 	localtime_r(&t, &tm);
 
-	sprintf(buff,"%04d-%02d-%02d",
-	tm.tm_year + 1900,tm.tm_mon + 1, tm.tm_mday);
+	sprintf(buff,"%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
+								tm.tm_mday);
 	cairo_move_to(cr,p.x, p.y);
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
@@ -138,7 +156,7 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	cairo_set_font_size(cr,FONT_SIZE+2);
 	p.x+= size*GAP_SIZE + SPACE;
 	cairo_move_to(cr, p.x, p.y);
-	sprintf(buff,"HCI%d",e.index);
+	sprintf(buff,"hci%d",e.index);
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
 
@@ -162,21 +180,12 @@ void draw_event(cairo_t *cr,event_t e,point p)
 
 }
 
-
 int draw_init(int argc,char **argv,GMainLoop *loop)
 {
-	GtkWidget* sw;
-	
+	GtkWidget* sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
+
 	GtkRequisition size;
-    GtkWidget* viewport;
-    
-    GtkWidget *vbox;
-    
-	GtkWidget *menubar;
-	GtkWidget *filemenu;
-	GtkWidget *file;
-	GtkWidget *quit;
-	
+
 	gtk_init(&argc,&argv);
 
 	/* set variables */
@@ -186,11 +195,11 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	events=g_array_new(FALSE,FALSE,sizeof(event_t));
 	events_size=0;
-	
+
 	/* add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
-	
+
 	/*add menubar*/
 	menubar = gtk_menu_bar_new();
 	filemenu = gtk_menu_new();
@@ -199,36 +208,34 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 
 	quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
 	g_signal_connect(quit, "activate",
-        G_CALLBACK(on_destroy_event), (gpointer) quit);
-	
+			G_CALLBACK(on_destroy_event), (gpointer) quit);
+
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-	
+
 	/* add scrollable drawing area*/
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
-                GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);	
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);	
 	gtk_box_pack_end(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw), darea);
-	
+
 	/*set events handlers */
 	g_signal_connect(window, "destroy",
-		G_CALLBACK(on_destroy_event), NULL);
+			G_CALLBACK(on_destroy_event), NULL);
 	g_signal_connect(darea, "expose-event",G_CALLBACK(on_expose_event), NULL);
-	
+
 	/*set positions and dimensions*/
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	gtk_window_set_default_size(GTK_WINDOW(window), WINDOW_W, WINDOW_H);
-	
+
 	viewport = gtk_widget_get_ancestor(darea, GTK_TYPE_VIEWPORT);
-    gtk_widget_size_request(darea, &size);
-    gtk_widget_set_size_request(darea, DAREA_W, DAREA_H);
-    gtk_widget_set_size_request(sw, DAREA_W, DAREA_H);
-    
-    gtk_widget_show_all(window);
+	gtk_widget_size_request(darea, &size);
+	gtk_widget_set_size_request(darea, DAREA_W, DAREA_H);
+	gtk_widget_set_size_request(sw, DAREA_W, DAREA_H);
+
+	gtk_widget_show_all(window);
 
 	return 0;
 }
-
-

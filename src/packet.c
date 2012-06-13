@@ -129,9 +129,9 @@ void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		break;
 	}
 
-	printf("[hci%d] opcode 0x%2.2x\n", index, opcode);
+	printf("[hci%d] op 0x%2.2x\n", index, opcode);
 
-	packet_hexdump(data,size);
+	packet_hexdump(data, size);
 
 	/*generate event*/
 	strcpy(e.socket_name, "MONITOR");

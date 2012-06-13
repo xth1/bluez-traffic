@@ -33,7 +33,7 @@
 #include "control.h"
 #include "draw.h"
 
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
 	GMainLoop *loop;
 
@@ -43,13 +43,11 @@ int main(int argc,char **argv)
 
 	control_tracing();
 
+	draw_init(argc, argv, loop);
+
 	printf("bluez-traffic %s\n", VERSION);
-	
-	
-	draw_init(argc,argv,loop);
+
 	g_main_loop_run(loop);
-	
-	
 
 	return 0;
 }

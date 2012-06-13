@@ -135,7 +135,7 @@ void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	/*generate event*/
 	strcpy(e.socket_name, "MONITOR");
-	e.time=tv;
+	memcpy(&e.time, tv, sizeof(*tv));
 	e.index=index;
 	/*e.data=data;*/
 	e.type=opcode;
@@ -153,7 +153,7 @@ void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	/*generate event*/
 	strcpy(e.socket_name, "CONTROL");
-	e.time=tv;
+	memcpy(&e.time, tv, sizeof(*tv));
 	e.index=index;
 	/*e.data=data;*/
 	e.type=opcode;

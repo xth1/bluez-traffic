@@ -135,7 +135,7 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
 
 	/*print date*/
-	t = (e.time)->tv_sec;
+	t = (e.time).tv_sec;
 	localtime_r(&t, &tm);
 
 	sprintf(buff,"%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
@@ -146,7 +146,7 @@ void draw_event(cairo_t *cr,event_t e,point p)
 
 	/*print time*/
 	sprintf(buff,"%02d:%02d:%02d.%06lu ", tm.tm_hour,tm.tm_min,
-						 tm.tm_sec, (e.time)->tv_usec);
+						 tm.tm_sec, (e.time).tv_usec);
 	cairo_move_to(cr,p.x, p.y+ 2*SPACE);
 	cairo_show_text(cr,buff);
 

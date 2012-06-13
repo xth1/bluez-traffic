@@ -4,7 +4,7 @@
 
 typedef struct{
   char socket_name[MAX_SIZE_EVENT_NAME];
-  struct timeval *time;
+  struct timeval time;
   int index;
   int address_device;
   int type;

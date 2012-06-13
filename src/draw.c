@@ -162,8 +162,6 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	cairo_move_to(cr,p.x , p.y);
 	cairo_show_text(cr,buff);
 
-	//size=strlen(buff);
-
 }
 
 

@@ -77,8 +77,7 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
 	if(new_height != size.height)
 		gtk_widget_set_size_request(darea, size.width,
 			new_height);
-	else
-		return TRUE;
+	
 
 	p.x=p.y=0;
 	for(i=0;i<events_size;i++){

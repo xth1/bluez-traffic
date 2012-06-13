@@ -109,33 +109,32 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 }
 
 void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
-					const void *data, uint16_t size)
+						const void *data, uint16_t size)
 {
-	
 	const struct monitor_new_index *ni;
 	char str[18];
 	char buff[500];
 	event_t e;
 	switch (opcode) {
-		case MONITOR_NEW_INDEX:
-			ni = data;
+	case MONITOR_NEW_INDEX:
+		ni = data;
 
-			if (index < MAX_INDEX)
-				memcpy(&index_list[index], ni, MONITOR_NEW_INDEX_SIZE);
+		if (index < MAX_INDEX)
+			memcpy(&index_list[index], ni, MONITOR_NEW_INDEX_SIZE);
 
-			ba2str(&ni->bdaddr, str);
-			
-			sprintf(buff,"New Device [ %d %d %s]",ni->type,ni->bus,ni->name);
+		ba2str(&ni->bdaddr, str);
 
-			break;
+		sprintf(buff,"New Device [ %d %d %s]",ni->type,ni->bus,ni->name);
+
+		break;
 	}
-	
-	printf("Monitor channel\nOPCODE %d\n",opcode);
+
+	printf("[hci%d] opcode 0x%2.2x\n", index, opcode);
 
 	packet_hexdump(data,size);
-	
+
 	/*generate event*/
-	strcpy(e.socket_name,"MONITOR");
+	strcpy(e.socket_name, "MONITOR");
 	e.time=tv;
 	e.index=index;
 	/*e.data=data;*/
@@ -147,12 +146,13 @@ void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
 	event_t e;
-	
-	printf("Control channel\nOPCODE %d\n",opcode);
+
+	printf("{hci%d} op 0x%2.2x\n", index, opcode);
+
 	packet_hexdump(data,size);
-	
+
 	/*generate event*/
-	strcpy(e.socket_name,"CONTROL");
+	strcpy(e.socket_name, "CONTROL");
 	e.time=tv;
 	e.index=index;
 	/*e.data=data;*/

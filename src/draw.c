@@ -41,7 +41,7 @@ static GArray *events;
 static int events_size;
 void add_event(event_t e)
 {
-    g_array_append_val (events, e);
+    g_array_prepend_val(events, e);
     events_size++;
 
     /*generate event to update darea*/
@@ -77,7 +77,6 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
 	if(new_height != size.height)
 		gtk_widget_set_size_request(darea, size.width,
 			new_height);
-	
 
 	p.x=p.y=0;
 	for(i=0;i<events_size;i++){

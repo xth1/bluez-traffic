@@ -43,14 +43,12 @@
 #define MAX_BUFF 512
 
 gboolean quit(GtkWidget *widget,GdkEventExpose *event,
-    gpointer data);
+		gpointer data);
 gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
-	gpointer data);
+	       gpointer data);
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
-    gpointer data);
-void draw_event(cairo_t *cr,event_t e,point p);
-
-event_t get_event(int p);
+		gpointer data);
+void draw_event(cairo_t *cr,event_t *e,point p);
 
 static GtkWidget *window;
 static GtkWidget *darea;
@@ -59,7 +57,9 @@ static GMainLoop *mainloop;
 /*Array of events*/
 static GArray *events;
 static int events_size;
-void add_event(event_t e)
+struct timeval *tv;
+
+void add_event(event_t *e)
 {
     g_array_prepend_val(events, e);
     events_size++;
@@ -68,9 +68,9 @@ void add_event(event_t e)
     gtk_widget_queue_draw(darea);
 }
 
-event_t get_event(int p)
+event_t *get_event(int p)
 {
-	return g_array_index(events,event_t,p);
+	return g_array_index(events, void *, p);
 }
 
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
@@ -85,12 +85,12 @@ gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
 {
 	cairo_t *cr;
-	event_t e;
+	event_t *e;
 	int i;
 	int new_height;
 	point p;
 	GtkRequisition size;
-	cr = gdk_cairo_create (widget->window);
+	cr = gdk_cairo_create(widget->window);
 	gtk_widget_size_request(widget, &size);
 
 	new_height=events_size * R_H;
@@ -99,16 +99,17 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
 			new_height);
 
 	p.x=p.y=0;
-	for(i=0;i<events_size;i++){
-		e=get_event(i);
-		draw_event(cr,e,p);
+	for(i = 0 ; i < events_size; i++){
+		printf("%d", i);
+		e = get_event(i);
+		draw_event(cr, e ,p);
 		p.y+=R_H+SPACE;
 	}
 
     return FALSE;
 }
 
-void draw_event(cairo_t *cr,event_t e,point p)
+void draw_event(cairo_t *cr, event_t *e, point p)
 {
 	char buff[MAX_BUFF];
 	int size;
@@ -131,24 +132,26 @@ void draw_event(cairo_t *cr,event_t e,point p)
 
 	cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL,
 						CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size(cr,FONT_SIZE);
+	cairo_set_font_size(cr, FONT_SIZE);
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
 
 	/*print date*/
-	t = (e.time).tv_sec;
+	t = (e->tv).tv_sec;
 	localtime_r(&t, &tm);
 
 	sprintf(buff,"%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
-								tm.tm_mday);
+							tm.tm_mday);
 	cairo_move_to(cr,p.x, p.y);
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
 
 	/*print time*/
 	sprintf(buff,"%02d:%02d:%02d.%06lu ", tm.tm_hour,tm.tm_min,
-						 tm.tm_sec, (e.time).tv_usec);
+					 tm.tm_sec, (e->tv).tv_usec);
 	cairo_move_to(cr,p.x, p.y+ 2*SPACE);
 	cairo_show_text(cr,buff);
+
+	tv = &e->tv;
 
 	/*print adapter index*/
 
@@ -156,7 +159,7 @@ void draw_event(cairo_t *cr,event_t e,point p)
 	cairo_set_font_size(cr,FONT_SIZE+2);
 	p.x+= size*GAP_SIZE + SPACE;
 	cairo_move_to(cr, p.x, p.y);
-	sprintf(buff,"hci%d",e.index);
+	sprintf(buff, "hci%d", e->index);
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
 
@@ -166,17 +169,17 @@ void draw_event(cairo_t *cr,event_t e,point p)
 
 	p.x+= size*GAP_SIZE + SPACE;
 	cairo_move_to(cr,p.x , p.y);
-	cairo_show_text(cr,e.socket_name);
+	cairo_show_text(cr, e->socket_name);
 
 	/*print socket type*/
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_font_size(cr,FONT_SIZE+1);
 
-	sprintf(buff,"OPCODE: %d",e.type);
+	sprintf(buff,"OPCODE: %d",e->type);
 
 	p.x+= size*GAP_SIZE + SPACE;
 	cairo_move_to(cr,p.x , p.y);
-	cairo_show_text(cr,buff);
+	cairo_show_text(cr, buff);
 
 }
 
@@ -193,8 +196,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	window = gtk_window_new(0);
 	darea = gtk_drawing_area_new ();
 	sw = gtk_scrolled_window_new(NULL, NULL);
-	events=g_array_new(FALSE,FALSE,sizeof(event_t));
-	events_size=0;
+	events=g_array_new(FALSE, FALSE, sizeof(event_t *));
 
 	/* add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
@@ -217,7 +219,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 
 	/* add scrollable drawing area*/
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
-			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);	
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_end(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw), darea);
 

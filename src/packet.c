@@ -108,13 +108,13 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 	}
 }
 
-void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
+int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 						const void *data, uint16_t size)
 {
 	const struct monitor_new_index *ni;
 	char str[18];
-	char buff[500];
-	event_t e;
+	event_t *e;
+
 	switch (opcode) {
 	case MONITOR_NEW_INDEX:
 		ni = data;
@@ -123,8 +123,7 @@ void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 			memcpy(&index_list[index], ni, MONITOR_NEW_INDEX_SIZE);
 
 		ba2str(&ni->bdaddr, str);
-
-		sprintf(buff,"New Device [ %d %d %s]",ni->type,ni->bus,ni->name);
+		printf("New Device [ %d %d %s]",ni->type, ni->bus, ni->name);
 
 		break;
 	}
@@ -133,29 +132,41 @@ void packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	packet_hexdump(data, size);
 
+	e = malloc(sizeof(event_t));
+	if (!e)
+		return -ENOMEM;
+
 	/*generate event*/
-	strcpy(e.socket_name, "MONITOR");
-	memcpy(&e.time, tv, sizeof(*tv));
-	e.index=index;
+	strcpy(e->socket_name, "MONITOR");
+	memcpy(&e->tv, tv, sizeof(*tv));
+	e->index = index;
 	/*e.data=data;*/
-	e.type=opcode;
+	e->type = opcode;
 	add_event(e);
+
+	return 0;
 }
 
-void packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
+int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
-	event_t e;
+	event_t *e;
 
 	printf("{hci%d} op 0x%2.2x\n", index, opcode);
 
 	packet_hexdump(data,size);
 
+	e = malloc(sizeof(*e));
+	if (!e)
+		return -ENOMEM;
+
 	/*generate event*/
-	strcpy(e.socket_name, "CONTROL");
-	memcpy(&e.time, tv, sizeof(*tv));
-	e.index=index;
+	strcpy(e->socket_name, "CONTROL");
+	memcpy(&e->tv, tv, sizeof(*tv));
+	e->index = index;
 	/*e.data=data;*/
-	e.type=opcode;
+	e->type = opcode;
 	add_event(e);
+
+	return 0;
 }

@@ -4,7 +4,7 @@
 
 typedef struct{
   char socket_name[MAX_SIZE_EVENT_NAME];
-  struct timeval time;
+  struct timeval tv;
   int index;
   int address_device;
   int type;
@@ -17,4 +17,4 @@ typedef struct{
 }point;
 
 int draw_init(int argc,char **argv,GMainLoop *loop);
-void add_event(event_t e);
+void add_event(event_t *e);

@@ -21,8 +21,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#ifndef TRAFFIC_CONTROL_H
-#define TRAFFIC_CONTROL_H
 
 struct control_data {
 	uint16_t channel;
@@ -30,5 +28,3 @@ struct control_data {
 };
 
 int control_tracing(void);
-
-#endif

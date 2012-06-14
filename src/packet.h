@@ -22,9 +22,6 @@
  *
  */
 
-#ifndef TRAFFIC_PACKET_H
-#define TRAFFIC_PACKET_H
-
 #define PACKET_FILTER_SHOW_INDEX	(1 << 0)
 #define PACKET_FILTER_SHOW_DATE		(1 << 1)
 #define PACKET_FILTER_SHOW_TIME		(1 << 2)
@@ -37,4 +34,3 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size);
-#endif

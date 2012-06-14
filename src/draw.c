@@ -26,6 +26,10 @@
 #include <string.h>
 #include <glib.h>
 #include <sys/time.h>
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+
 #include "draw.h"
 
 #define R_W 375
@@ -127,17 +131,12 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 	p.x += size*GAP_SIZE + SPACE;
 
 	cairo_move_to(cr, p.x, p.y);
-	sprintf(buff, "hci%d", e->index);
+	if (e->socket == HCI_CHANNEL_MONITOR)
+		sprintf(buff, "[ hci%d ]", e->index);
+	else
+		sprintf(buff, "{ hci%d }", e->index);
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
-
-	/*print socket type*/
-	cairo_set_source_rgb(cr, 0.0, 0.5, 0.0);
-	cairo_set_font_size(cr,FONT_SIZE + 1);
-
-	p.x += size*GAP_SIZE + SPACE;
-	cairo_move_to(cr,p.x , p.y);
-	cairo_show_text(cr, e->socket_name);
 
 	/*print operation code*/
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);

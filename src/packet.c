@@ -137,7 +137,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		return -ENOMEM;
 
 	/*generate event*/
-	strcpy(e->socket_name, "MONITOR");
+	e->socket = HCI_CHANNEL_MONITOR;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
 	/*e.data=data;*/
@@ -161,7 +161,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 		return -ENOMEM;
 
 	/*generate event*/
-	strcpy(e->socket_name, "CONTROL");
+	e->socket = HCI_CHANNEL_CONTROL;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
 	/*e.data=data;*/

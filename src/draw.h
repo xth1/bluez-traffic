@@ -23,13 +23,11 @@
 
 #include <gtk/gtk.h>
 #include <sys/time.h>
-#define MAX_SIZE_EVENT_NAME 64
 
-struct event_t{
-  char socket_name[MAX_SIZE_EVENT_NAME];
+struct event_t {
+  int socket;
   struct timeval tv;
   int index;
-  int address_device;
   int type;
   char *data;
 };
@@ -38,5 +36,5 @@ struct point{
     int x,y;
 };
 
-int draw_init(int argc,char **argv,GMainLoop *loop);
+int draw_init(int argc, char **argv, GMainLoop *loop);
 void add_event(struct event_t *e);

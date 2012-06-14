@@ -113,7 +113,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 {
 	const struct monitor_new_index *ni;
 	char str[18];
-	event_t *e;
+	struct event_t *e;
 
 	switch (opcode) {
 	case MONITOR_NEW_INDEX:
@@ -132,7 +132,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	packet_hexdump(data, size);
 
-	e = malloc(sizeof(event_t));
+	e = malloc(sizeof(struct event_t));
 	if (!e)
 		return -ENOMEM;
 
@@ -150,7 +150,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 					const void *data, uint16_t size)
 {
-	event_t *e;
+	struct event_t *e;
 
 	printf("{hci%d} op 0x%2.2x\n", index, opcode);
 

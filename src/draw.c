@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 #include <cairo.h>
 #include <gtk/gtk.h>
 #include <string.h>
@@ -48,7 +49,8 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
 	       gpointer data);
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 		gpointer data);
-void draw_event(cairo_t *cr,event_t *e,point p);
+struct event_t *get_event(int p);
+void draw_event(cairo_t *cr,struct event_t *e,struct point p);
 
 static GtkWidget *window;
 static GtkWidget *darea;
@@ -59,7 +61,7 @@ static GArray *events;
 static int events_size;
 struct timeval *tv;
 
-void add_event(event_t *e)
+void add_event(struct event_t *e)
 {
     g_array_prepend_val(events, e);
     events_size++;
@@ -68,7 +70,7 @@ void add_event(event_t *e)
     gtk_widget_queue_draw(darea);
 }
 
-event_t *get_event(int p)
+struct event_t *get_event(int p)
 {
 	return g_array_index(events, void *, p);
 }
@@ -82,13 +84,14 @@ gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 	return FALSE;
 }
 
-gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
+gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
+	gpointer data)
 {
 	cairo_t *cr;
-	event_t *e;
+	struct event_t *e;
 	int i;
 	int new_height;
-	point p;
+	struct point p;
 	GtkRequisition size;
 	cr = gdk_cairo_create(widget->window);
 	gtk_widget_size_request(widget, &size);
@@ -100,7 +103,6 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
 
 	p.x=p.y=0;
 	for(i = 0 ; i < events_size; i++){
-		printf("%d", i);
 		e = get_event(i);
 		draw_event(cr, e ,p);
 		p.y+=R_H+SPACE;
@@ -109,15 +111,16 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,gpointer data)
     return FALSE;
 }
 
-void draw_event(cairo_t *cr, event_t *e, point p)
+void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 {
 	char buff[MAX_BUFF];
 	int size;
 	time_t t;
 	struct tm tm;
+
 	/*draw retangle */
-	p.x+= SPACE;
-	p.y+= SPACE;
+	p.x += SPACE;
+	p.y += SPACE;
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_set_line_width(cr, 1);
 
@@ -127,8 +130,8 @@ void draw_event(cairo_t *cr, event_t *e, point p)
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_fill(cr);
 
-	p.x+= SPACE;
-	p.y+= SPACE;
+	p.x += SPACE;
+	p.y += SPACE;
 
 	cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL,
 						CAIRO_FONT_WEIGHT_BOLD);
@@ -148,16 +151,17 @@ void draw_event(cairo_t *cr, event_t *e, point p)
 	/*print time*/
 	sprintf(buff,"%02d:%02d:%02d.%06lu ", tm.tm_hour,tm.tm_min,
 					 tm.tm_sec, (e->tv).tv_usec);
-	cairo_move_to(cr,p.x, p.y+ 2*SPACE);
+	cairo_move_to(cr,p.x, p.y + 2 * SPACE);
 	cairo_show_text(cr,buff);
 
 	tv = &e->tv;
 
 	/*print adapter index*/
-
 	cairo_set_source_rgb(cr, 0.3, 0.0, 0.0);
-	cairo_set_font_size(cr,FONT_SIZE+2);
-	p.x+= size*GAP_SIZE + SPACE;
+	cairo_set_font_size(cr,FONT_SIZE + 2);
+
+	p.x += size*GAP_SIZE + SPACE;
+
 	cairo_move_to(cr, p.x, p.y);
 	sprintf(buff, "hci%d", e->index);
 	cairo_show_text(cr,buff);
@@ -165,19 +169,19 @@ void draw_event(cairo_t *cr, event_t *e, point p)
 
 	/*print socket type*/
 	cairo_set_source_rgb(cr, 0.0, 0.5, 0.0);
-	cairo_set_font_size(cr,FONT_SIZE+1);
+	cairo_set_font_size(cr,FONT_SIZE + 1);
 
-	p.x+= size*GAP_SIZE + SPACE;
+	p.x += size*GAP_SIZE + SPACE;
 	cairo_move_to(cr,p.x , p.y);
 	cairo_show_text(cr, e->socket_name);
 
-	/*print socket type*/
+	/*print operation code*/
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
-	cairo_set_font_size(cr,FONT_SIZE+1);
+	cairo_set_font_size(cr,FONT_SIZE + 1);
 
-	sprintf(buff,"OPCODE: %d",e->type);
+	sprintf(buff,"OPCODE: 0x%2.2x",e->type);
 
-	p.x+= size*GAP_SIZE + SPACE;
+	p.x += size * GAP_SIZE + SPACE;
 	cairo_move_to(cr,p.x , p.y);
 	cairo_show_text(cr, buff);
 
@@ -196,7 +200,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	window = gtk_window_new(0);
 	darea = gtk_drawing_area_new ();
 	sw = gtk_scrolled_window_new(NULL, NULL);
-	events=g_array_new(FALSE, FALSE, sizeof(event_t *));
+	events=g_array_new(FALSE, FALSE, sizeof(struct event_t *));
 
 	/* add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
@@ -221,12 +225,14 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_end(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw), darea);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw),
+		darea);
 
 	/*set events handlers */
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(on_destroy_event), NULL);
-	g_signal_connect(darea, "expose-event",G_CALLBACK(on_expose_event), NULL);
+	g_signal_connect(darea, "expose-event",G_CALLBACK(on_expose_event),
+		NULL);
 
 	/*set positions and dimensions*/
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

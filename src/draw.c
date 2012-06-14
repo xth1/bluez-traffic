@@ -21,11 +21,11 @@
  *
  */
 
+#include <sys/time.h>
+#include <string.h>
 #include <cairo.h>
 #include <gtk/gtk.h>
-#include <string.h>
 #include <glib.h>
-#include <sys/time.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -54,7 +54,6 @@ static GMainLoop *mainloop;
 /*Array of events*/
 static GArray *events;
 static int events_size;
-struct timeval *tv;
 
 void add_event(struct event_t *e)
 {
@@ -71,10 +70,10 @@ struct event_t *get_event(int p)
 }
 
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
-    gpointer data)
+								gpointer data)
 {
 	gtk_main_quit();
-	g_main_quit (mainloop);
+	g_main_quit(mainloop);
 
 	return FALSE;
 }
@@ -122,8 +121,6 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 	cairo_move_to(cr,p.x, p.y + 2 * SPACE);
 	cairo_show_text(cr,buff);
 
-	tv = &e->tv;
-
 	/*print adapter index*/
 	cairo_set_source_rgb(cr, 0.3, 0.0, 0.0);
 	cairo_set_font_size(cr,FONT_SIZE + 2);
@@ -151,7 +148,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 }
 
 gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
-	gpointer data)
+								gpointer data)
 {
 	cairo_t *cr;
 	struct event_t *e;
@@ -164,8 +161,7 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
 
 	new_height=events_size * R_H;
 	if(new_height != size.height)
-		gtk_widget_set_size_request(darea, size.width,
-			new_height);
+		gtk_widget_set_size_request(darea, size.width, new_height);
 
 	p.x=p.y=0;
 	for(i = 0 ; i < events_size; i++){
@@ -174,23 +170,22 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
 		p.y+=R_H+SPACE;
 	}
 
-    return FALSE;
+	return FALSE;
 }
 
 int draw_init(int argc,char **argv,GMainLoop *loop)
 {
-	GtkWidget* sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
-
+	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
 	GtkRequisition size;
 
 	gtk_init(&argc,&argv);
 
 	/* set variables */
-	mainloop=loop;
+	mainloop = loop;
 	window = gtk_window_new(0);
-	darea = gtk_drawing_area_new ();
+	darea = gtk_drawing_area_new();
 	sw = gtk_scrolled_window_new(NULL, NULL);
-	events=g_array_new(FALSE, FALSE, sizeof(struct event_t *));
+	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
 
 	/* add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
@@ -203,8 +198,8 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	file = gtk_menu_item_new_with_mnemonic("_File");
 
 	quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
-	g_signal_connect(quit, "activate",
-			G_CALLBACK(on_destroy_event), (gpointer) quit);
+	g_signal_connect(quit, "activate", G_CALLBACK(on_destroy_event),
+							(gpointer) quit);
 
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
@@ -216,13 +211,12 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_end(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw),
-		darea);
+								darea);
 
 	/*set events handlers */
-	g_signal_connect(window, "destroy",
-			G_CALLBACK(on_destroy_event), NULL);
+	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	g_signal_connect(darea, "expose-event",G_CALLBACK(on_expose_event),
-		NULL);
+									NULL);
 
 	/*set positions and dimensions*/
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

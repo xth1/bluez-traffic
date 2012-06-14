@@ -43,15 +43,6 @@
 
 #define MAX_BUFF 512
 
-gboolean quit(GtkWidget *widget,GdkEventExpose *event,
-		gpointer data);
-gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
-	       gpointer data);
-gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
-		gpointer data);
-struct event_t *get_event(int p);
-void draw_event(cairo_t *cr,struct event_t *e,struct point p);
-
 static GtkWidget *window;
 static GtkWidget *darea;
 static GMainLoop *mainloop;
@@ -82,33 +73,6 @@ gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 	g_main_quit (mainloop);
 
 	return FALSE;
-}
-
-gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
-	gpointer data)
-{
-	cairo_t *cr;
-	struct event_t *e;
-	int i;
-	int new_height;
-	struct point p;
-	GtkRequisition size;
-	cr = gdk_cairo_create(widget->window);
-	gtk_widget_size_request(widget, &size);
-
-	new_height=events_size * R_H;
-	if(new_height != size.height)
-		gtk_widget_set_size_request(darea, size.width,
-			new_height);
-
-	p.x=p.y=0;
-	for(i = 0 ; i < events_size; i++){
-		e = get_event(i);
-		draw_event(cr, e ,p);
-		p.y+=R_H+SPACE;
-	}
-
-    return FALSE;
 }
 
 void draw_event(cairo_t *cr, struct event_t *e, struct point p)
@@ -185,6 +149,33 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 	cairo_move_to(cr,p.x , p.y);
 	cairo_show_text(cr, buff);
 
+}
+
+gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
+	gpointer data)
+{
+	cairo_t *cr;
+	struct event_t *e;
+	int i;
+	int new_height;
+	struct point p;
+	GtkRequisition size;
+	cr = gdk_cairo_create(widget->window);
+	gtk_widget_size_request(widget, &size);
+
+	new_height=events_size * R_H;
+	if(new_height != size.height)
+		gtk_widget_set_size_request(darea, size.width,
+			new_height);
+
+	p.x=p.y=0;
+	for(i = 0 ; i < events_size; i++){
+		e = get_event(i);
+		draw_event(cr, e ,p);
+		p.y+=R_H+SPACE;
+	}
+
+    return FALSE;
 }
 
 int draw_init(int argc,char **argv,GMainLoop *loop)

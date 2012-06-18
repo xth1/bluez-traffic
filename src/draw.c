@@ -75,33 +75,6 @@ struct event_t *get_event(int p)
 	return g_array_index(events, void *, p);
 }
 
-gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
-								gpointer data)
-{
-	g_main_quit(mainloop);
-	gtk_main_quit();
-
-	return FALSE;
-}
-
-gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
-								gpointer data)
-{
-	gdk_draw_drawable(widget->window,
-				widget->style->fg_gc[gtk_widget_get_state(widget)],
-				draw_pixmap,
-				event->area.x, event->area.y,
-				event->area.x, event->area.y,
-				event->area.width, event->area.height);
-
-	if(need_draw){
-		draw();
-		need_draw = FALSE;
-	}
-
-	return TRUE;
-}
-
 void create_draw_pixmap(GtkWidget *widget){
 
 	GtkRequisition size;
@@ -139,65 +112,6 @@ void create_draw_pixmap(GtkWidget *widget){
 		cairo_destroy(cairo_draw);
 
 	cairo_draw = gdk_cairo_create(draw_pixmap);
-}
-
-/*
- * Draw all events receivede
- */
-void draw()
-{
-	struct event_t *e;
-	int i;
-	int new_height;
-	struct point p;
-	GtkRequisition size;
-
-	gtk_widget_size_request(darea, &size);
-
-	new_height = events_size * R_H;
-
-	if(new_height > size.height)
-		gtk_widget_set_size_request(darea, size.width, new_height);
-
-	create_draw_pixmap(darea);
-
-	p.x = p.y = 0;
-
-	for(i = 0; i < events_size; i++){
-		e = get_event(i);
-		draw_event(cairo_draw, e, p);
-		p.y += R_H + SPACE;
-	}
-}
-
-static gboolean
-on_configure_event(GtkWidget *widget, GdkEventConfigure *event)
-{
-	create_draw_pixmap(widget);
-
-  return TRUE;
-}
-
-void add_event(struct event_t *e)
-{
-	g_array_prepend_val(events, e);
-	events_size++;
-
-	/*Add expose event handler, if it don't exist*/
-	if(draw_handler_id == 0)
-		draw_handler_id = g_signal_connect(darea, "expose-event",
-					G_CALLBACK(on_expose_event),NULL);
-	/*Initial event*/
-	if(draw_pixmap == NULL){
-		create_draw_pixmap(darea);
-		draw();
-	}
-
-	need_draw = TRUE;
-	create_draw_pixmap(darea);
-
-	/*Launch darea expose event*/
-	gtk_widget_queue_draw(darea);
 }
 
 void draw_event(cairo_t *cr, struct event_t *e, struct point p)
@@ -269,6 +183,92 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 
 }
 
+/*
+ * Draw all events receivede
+ */
+void draw()
+{
+	struct event_t *e;
+	int i;
+	int new_height;
+	struct point p;
+	GtkRequisition size;
+
+	gtk_widget_size_request(darea, &size);
+
+	new_height = events_size * R_H;
+
+	if(new_height > size.height)
+		gtk_widget_set_size_request(darea, size.width, new_height);
+
+	create_draw_pixmap(darea);
+
+	p.x = p.y = 0;
+
+	for(i = 0; i < events_size; i++){
+		e = get_event(i);
+		draw_event(cairo_draw, e, p);
+		p.y += R_H + SPACE;
+	}
+}
+
+gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
+								gpointer data)
+{
+	g_main_quit(mainloop);
+	gtk_main_quit();
+
+	return FALSE;
+}
+
+gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
+								gpointer data)
+{
+	gdk_draw_drawable(widget->window,
+				widget->style->fg_gc[gtk_widget_get_state(widget)],
+				draw_pixmap,
+				event->area.x, event->area.y,
+				event->area.x, event->area.y,
+				event->area.width, event->area.height);
+
+	if(need_draw){
+		draw();
+		need_draw = FALSE;
+	}
+
+	return TRUE;
+}
+
+static gboolean
+on_configure_event(GtkWidget *widget, GdkEventConfigure *event)
+{
+	create_draw_pixmap(widget);
+
+  return TRUE;
+}
+
+void add_event(struct event_t *e)
+{
+	g_array_prepend_val(events, e);
+	events_size++;
+
+	/*Add expose event handler, if it don't exist*/
+	if(draw_handler_id == 0)
+		draw_handler_id = g_signal_connect(darea, "expose-event",
+					G_CALLBACK(on_expose_event),NULL);
+	/*Initial event*/
+	if(draw_pixmap == NULL){
+		create_draw_pixmap(darea);
+		draw();
+	}
+
+	need_draw = TRUE;
+	create_draw_pixmap(darea);
+
+	/*Launch darea expose event*/
+	gtk_widget_queue_draw(darea);
+}
+
 int draw_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
@@ -286,7 +286,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	draw_handler_id=0;
 
 	/*Set window attributes*/
-	 gtk_window_set_title(window,WINDOW_TITLE);
+	 gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
 
 	/*Add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);

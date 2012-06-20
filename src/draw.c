@@ -75,7 +75,8 @@ struct event_t *get_event(int p)
 	return g_array_index(events, void *, p);
 }
 
-void create_draw_pixmap(GtkWidget *widget){
+void create_draw_pixmap(GtkWidget *widget)
+{
 
 	GtkRequisition size;
 	gint pixmap_width = 0;

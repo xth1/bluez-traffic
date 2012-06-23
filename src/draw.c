@@ -48,6 +48,10 @@
 #define PIXMAP_GROW_WIDTH 1
 #define PIXMAP_GROW_HEIGHT 70*R_H
 
+/*draw events options*/
+
+#define EVENT_SELECTED ( 1 << 1 )
+
 #define WINDOW_TITLE "Bluez Traffic Visualization"
 
 #define MAX_BUFF 512
@@ -68,6 +72,8 @@ static int events_size;
 /*Flag for drawing*/
 static gboolean need_draw = FALSE;
 
+static int event_selected_index=-1;
+
 static int draw_handler_id;
 
 struct event_t *get_event(int p)
@@ -77,7 +83,6 @@ struct event_t *get_event(int p)
 
 void create_draw_pixmap(GtkWidget *widget)
 {
-
 	GtkRequisition size;
 	gint pixmap_width = 0;
 	gint pixmap_height = 0;
@@ -115,7 +120,7 @@ void create_draw_pixmap(GtkWidget *widget)
 	cairo_draw = gdk_cairo_create(draw_pixmap);
 }
 
-void draw_event(cairo_t *cr, struct event_t *e, struct point p)
+void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 {
 	char buff[MAX_BUFF];
 	int size;
@@ -123,15 +128,22 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 	struct tm tm;
 
 	/*Draw retangle */
+	cairo_move_to(cr, p.x, p.y);
 	p.x += SPACE;
 	p.y += SPACE;
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_set_line_width(cr, 1);
 
+	printf("draw: %d %d %d %d\n",p.x,p.y, p.x + R_W, p.y + R_H);
 	cairo_rectangle(cr, p.x,p.y, p.x + R_W, p.y + R_H);
 	cairo_stroke_preserve(cr);
 
-	cairo_set_source_rgb(cr, 1, 1, 1);
+	if(op & EVENT_SELECTED){
+		cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+		printf("Event Selected\n");
+	}
+	else
+		cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_fill(cr);
 
 	p.x += SPACE;
@@ -187,10 +199,14 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p)
 /*
  * Draw all events receivede
  */
-void draw()
+void draw(int op, int arg1, int arg2)
 {
 	struct event_t *e;
 	int i;
+
+	int selected_old;
+	int selected_new;
+
 	int new_height;
 	struct point p;
 	GtkRequisition size;
@@ -206,11 +222,45 @@ void draw()
 
 	p.x = p.y = 0;
 
+	if(op & EVENT_SELECTED){
+		selected_old = arg1;
+		selected_new = arg2;
+	}
+
 	for(i = 0; i < events_size; i++){
 		e = get_event(i);
-		draw_event(cairo_draw, e, p);
+		if(i == event_selected_index)
+			draw_event(cairo_draw, e, p, EVENT_SELECTED);
+		else
+			draw_event(cairo_draw, e, p, 0);
+
 		p.y += R_H + SPACE;
 	}
+}
+
+int find_event_at(struct point p, struct event_t **event_r)
+{
+	struct event_t *event;
+	int id_event;
+
+	id_event = (p.y - SPACE)/(R_H + SPACE);
+
+	if(id_event >= events_size)
+		return -1;
+
+	event = get_event(id_event);
+	printf("id event: %d, %d\n",id_event,event->type);
+
+
+
+	if(event == NULL){
+		printf("Error: element with id %d don't exist\n",id_event);
+		return -1;
+	}
+
+	*event_r = event;
+
+	return id_event;
 }
 
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
@@ -233,19 +283,52 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
 				event->area.width, event->area.height);
 
 	if(need_draw){
-		draw();
+		draw(0,0,0);
 		need_draw = FALSE;
 	}
 
 	return TRUE;
 }
 
-static gboolean
-on_configure_event(GtkWidget *widget, GdkEventConfigure *event)
+gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
+				gpointer user_data)
+{
+	struct event_t *event;
+	struct point p;
+	struct point new_p;
+	int id_event;
+	p.x = (int)( (double) mouse_event->x);
+	p.y = (int)( (double) mouse_event->y);
+
+	id_event = find_event_at(p, &event);
+
+	if(event == NULL || id_event == -1){
+		return TRUE;
+	}
+
+	/* redraw event */
+	if(id_event != event_selected_index){
+		event_selected_index = id_event;
+		draw(EVENT_SELECTED,event_selected_index,id_event);
+		gtk_widget_queue_draw(darea);
+	}
+	/*
+	new_p.x = 0;
+	new_p.y = id_event * (R_H + SPACE);
+
+	draw_event(cairo_draw, event, new_p, EVENT_SELECTED);
+
+	gtk_widget_queue_draw_area(darea, new_p.x + SPACE, new_p.y + SPACE, R_W, R_H);
+	*/
+
+	return TRUE;
+}
+
+gboolean on_configure_event(GtkWidget *widget, GdkEventConfigure *event)
 {
 	create_draw_pixmap(widget);
 
-  return TRUE;
+	return TRUE;
 }
 
 void add_event(struct event_t *e)
@@ -260,7 +343,7 @@ void add_event(struct event_t *e)
 	/*Initial event*/
 	if(draw_pixmap == NULL){
 		create_draw_pixmap(darea);
-		draw();
+		draw(0,0,0);
 	}
 
 	need_draw = TRUE;
@@ -318,6 +401,10 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	gtk_window_set_default_size(GTK_WINDOW(window), WINDOW_W, WINDOW_H);
+
+	gtk_widget_add_events (darea,GDK_BUTTON_PRESS_MASK);
+	g_signal_connect(darea, "button-press-event",
+					G_CALLBACK(on_drawing_clicked), NULL);
 
 	viewport = gtk_widget_get_ancestor(darea, GTK_TYPE_VIEWPORT);
 	gtk_widget_size_request(darea, &size);

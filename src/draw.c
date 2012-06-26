@@ -45,6 +45,8 @@
 #define DAREA_W WINDOW_W
 #define DAREA_HEIGHT_GROW 200
 
+#define PACKET_FRAME_W WINDOW_W
+#define PACKET_FRAME_H 200
 #define PIXMAP_GROW_WIDTH 1
 #define PIXMAP_GROW_HEIGHT 70*R_H
 
@@ -58,7 +60,11 @@
 
 static GtkWidget *window;
 static GtkWidget *darea;
+static GtkWidget *packet_frame;
+static GtkWidget *packet_detail;
 static GMainLoop *mainloop;
+
+static unsigned char hexdump_buff[MAX_BUFF];
 
 static GtkWidget *loading_dialog;
 
@@ -303,7 +309,10 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 			event_selected_seq_number = -1;
 			draw(EVENT_SELECTED, -1, -1);
 			gtk_widget_queue_draw(darea);
+
+			gtk_widget_hide(packet_frame);
 		}
+
 		return TRUE;
 	}
 
@@ -314,6 +323,9 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 		draw(EVENT_SELECTED,event_selected_seq_number,
 				event->seq_number);
 		gtk_widget_queue_draw(darea);
+		gtk_label_set_text(packet_detail, event->data);
+		gtk_widget_show(packet_frame);
+		printf("Data: %s\n",event->data);
 	}
 	/*
 	new_p.x = 0;
@@ -360,6 +372,7 @@ void add_event(struct event_t *e)
 int draw_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
+	GtkWidget *packet_frame_scroll;
 	GtkRequisition size;
 
 	gtk_init(&argc,&argv);
@@ -368,13 +381,16 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	mainloop = loop;
 	window = gtk_window_new(0);
 	darea = gtk_drawing_area_new();
+	packet_frame = gtk_frame_new("Packet details");
+	packet_detail = gtk_label_new("");
 	sw = gtk_scrolled_window_new(NULL, NULL);
+	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
 	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
 
 	draw_handler_id=0;
 
 	/*Set window attributes*/
-	 gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
+	gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
 
 	/*Add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
@@ -395,13 +411,22 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
 
-	/*Add scrollable drawing area*/
+	/* Add scrollable drawing area*/
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_box_pack_end(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw),
 								darea);
-	/*Set events handlers */
+	/* Add packet details frame */
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(packet_frame_scroll),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_label_set_selectable(packet_detail, TRUE);
+	gtk_container_add(GTK_CONTAINER(packet_frame), packet_detail);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
+								packet_frame);
+	gtk_box_pack_end(GTK_BOX(vbox), packet_frame_scroll, TRUE, TRUE, 0);
+
+	/* Set events handlers */
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	gtk_window_set_default_size(GTK_WINDOW(window), WINDOW_W, WINDOW_H);
@@ -413,9 +438,11 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	viewport = gtk_widget_get_ancestor(darea, GTK_TYPE_VIEWPORT);
 	gtk_widget_size_request(darea, &size);
 	gtk_widget_set_size_request(darea, DAREA_W, DAREA_H);
+
 	gtk_widget_set_size_request(sw, DAREA_W, DAREA_H);
 
 	gtk_widget_show_all(window);
+	gtk_widget_hide(packet_frame);
 
 	return 0;
 }

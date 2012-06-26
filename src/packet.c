@@ -52,6 +52,8 @@
 #define MONITOR_SCO_TX_PKT	6
 #define MONITOR_SCO_RX_PKT	7
 
+#define HEXDUMP_LENGTH 4096
+
 struct monitor_new_index {
 	uint8_t  type;
 	uint8_t  bus;
@@ -73,6 +75,7 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 {
 	static const char hexdigits[] = "0123456789abcdef";
 	char str[68];
+	char buff[68];
 	uint16_t i;
 
 	if (!len)
@@ -108,6 +111,49 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 	}
 }
 
+void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
+								unsigned char *out)
+{
+	static const char hexdigits[] = "0123456789abcdef";
+	char str[68];
+	char aux[68];
+	uint16_t i;
+
+	if (!len)
+		return;
+
+	for (i = 0; i < len; i++) {
+		str[((i % 16) * 3) + 0] = hexdigits[buf[i] >> 4];
+		str[((i % 16) * 3) + 1] = hexdigits[buf[i] & 0xf];
+		str[((i % 16) * 3) + 2] = ' ';
+		str[(i % 16) + 49] = isprint(buf[i]) ? buf[i] : '.';
+
+		if ((i + 1) % 16 == 0) {
+			str[47] = ' ';
+			str[48] = ' ';
+			str[65] = '\0';
+			sprintf(aux,"%c%s\n", ' ', str);
+			strcat(out,aux);
+			str[0] = ' ';
+		}
+	}
+
+	if (i % 16 > 0) {
+		uint16_t j;
+		for (j = (i % 16); j < 16; j++) {
+			str[(j * 3) + 0] = ' ';
+			str[(j * 3) + 1] = ' ';
+			str[(j * 3) + 2] = ' ';
+			str[j + 49] = ' ';
+		}
+		str[47] = ' ';
+		str[48] = ' ';
+		str[65] = '\0';
+		sprintf(aux,"%c%s\n", ' ', str);
+		strcat(out,aux);
+	}
+}
+
 int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 						const void *data, uint16_t size)
 {
@@ -140,7 +186,9 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->socket = HCI_CHANNEL_MONITOR;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
-	/*e.data=data;*/
+	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
+
+	packet_hexdump_to_string(data, size, e->data);
 	e->type = opcode;
 	add_event(e);
 
@@ -164,7 +212,10 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->socket = HCI_CHANNEL_CONTROL;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
-	/*e.data=data;*/
+
+	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
+	packet_hexdump_to_string(data, size, e->data);
+
 	e->type = opcode;
 	add_event(e);
 

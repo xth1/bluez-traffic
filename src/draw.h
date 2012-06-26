@@ -30,6 +30,7 @@ struct event_t {
   int index;
   int type;
   char *data;
+  int seq_number;
 };
 
 struct point{

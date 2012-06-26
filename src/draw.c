@@ -72,7 +72,7 @@ static int events_size;
 /*Flag for drawing*/
 static gboolean need_draw = FALSE;
 
-static int event_selected_index=-1;
+static int event_selected_seq_number=-1;
 
 static int draw_handler_id;
 
@@ -134,13 +134,11 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_set_line_width(cr, 1);
 
-	printf("draw: %d %d %d %d\n",p.x,p.y, p.x + R_W, p.y + R_H);
 	cairo_rectangle(cr, p.x,p.y, p.x + R_W, p.y + R_H);
 	cairo_stroke_preserve(cr);
 
 	if(op & EVENT_SELECTED){
 		cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
-		printf("Event Selected\n");
 	}
 	else
 		cairo_set_source_rgb(cr, 1, 1, 1);
@@ -229,7 +227,7 @@ void draw(int op, int arg1, int arg2)
 
 	for(i = 0; i < events_size; i++){
 		e = get_event(i);
-		if(i == event_selected_index)
+		if(e->seq_number == event_selected_seq_number)
 			draw_event(cairo_draw, e, p, EVENT_SELECTED);
 		else
 			draw_event(cairo_draw, e, p, 0);
@@ -249,12 +247,9 @@ int find_event_at(struct point p, struct event_t **event_r)
 		return -1;
 
 	event = get_event(id_event);
-	printf("id event: %d, %d\n",id_event,event->type);
-
-
 
 	if(event == NULL){
-		printf("Error: element with id %d don't exist\n",id_event);
+		printf("Error: element with id %d does not exist\n",id_event);
 		return -1;
 	}
 
@@ -303,13 +298,21 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 	id_event = find_event_at(p, &event);
 
 	if(event == NULL || id_event == -1){
+		/* Clear selection */
+		if(event_selected_seq_number != -1){
+			event_selected_seq_number = -1;
+			draw(EVENT_SELECTED, -1, -1);
+			gtk_widget_queue_draw(darea);
+		}
 		return TRUE;
 	}
 
 	/* redraw event */
-	if(id_event != event_selected_index){
-		event_selected_index = id_event;
-		draw(EVENT_SELECTED,event_selected_index,id_event);
+	if(event->seq_number != event_selected_seq_number){
+		event_selected_seq_number = event->seq_number;
+
+		draw(EVENT_SELECTED,event_selected_seq_number,
+				event->seq_number);
 		gtk_widget_queue_draw(darea);
 	}
 	/*
@@ -333,6 +336,7 @@ gboolean on_configure_event(GtkWidget *widget, GdkEventConfigure *event)
 
 void add_event(struct event_t *e)
 {
+	e->seq_number = events_size;
 	g_array_prepend_val(events, e);
 	events_size++;
 

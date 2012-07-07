@@ -39,7 +39,7 @@
 #define GAP_SIZE 9
 
 #define WINDOW_H 600
-#define WINDOW_W 430
+#define WINDOW_W 700
 
 #define DAREA_H WINDOW_H
 #define DAREA_W WINDOW_W
@@ -71,11 +71,14 @@ static GtkWidget *loading_dialog;
 static GdkPixmap *draw_pixmap = NULL;
 static cairo_t *cairo_draw = NULL;
 
-/*Array of events*/
+/* Array of events */
 static GArray *events;
 static int events_size;
 
-/*Flag for drawing*/
+/* Connected devices */
+static GHashTable *connected_devices;
+
+/* Flag for drawing */
 static gboolean need_draw = FALSE;
 
 static int event_selected_seq_number=-1;
@@ -85,6 +88,21 @@ static int draw_handler_id;
 struct event_t *get_event(int p)
 {
 	return g_array_index(events, void *, p);
+}
+
+
+/*HASH TABLE FUNCTIONS */
+void g_hash_table_key_destroy(gpointer data){
+	free(data);
+}
+
+void g_hash_table_value_destroy(gpointer data){
+	free(data);
+}
+
+void add_device(struct device_t *device)
+{
+	g_hash_table_insert(connected_devices, device->name, device);
 }
 
 void create_draw_pixmap(GtkWidget *widget)
@@ -133,22 +151,30 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	time_t t;
 	struct tm tm;
 
+	cairo_set_dash(cr, NULL, 0, 0);
 	/*Draw retangle */
 	cairo_move_to(cr, p.x, p.y);
 	p.x += SPACE;
 	p.y += SPACE;
-	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_set_line_width(cr, 1);
-
-	cairo_rectangle(cr, p.x,p.y, p.x + R_W, p.y + R_H);
-	cairo_stroke_preserve(cr);
 
 	if(op & EVENT_SELECTED){
-		cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+		cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
 	}
 	else
 		cairo_set_source_rgb(cr, 1, 1, 1);
+
+	cairo_set_line_width(cr, 0);
+
+	cairo_rectangle(cr, p.x, p.y, p.x + DAREA_W, p.y + R_H);
 	cairo_fill(cr);
+
+	/* Draw under line */
+	cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+	cairo_set_line_width(cr, 0.5);
+	cairo_move_to(cr, p.x, p.y + R_H);
+	cairo_line_to(cr, p.x + DAREA_W, p.y + R_H);
+
+	cairo_stroke(cr);
 
 	p.x += SPACE;
 	p.y += SPACE;
@@ -200,6 +226,31 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 
 }
 
+void draw_device_timeline(cairo_t *cr, struct device_t *d, struct point p)
+{
+	static const double dashed1[] = {4.0, 1.0};
+	static int len1  = sizeof(dashed1) / sizeof(dashed1[0]);
+
+	cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL,
+						CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(cr, 11);
+	cairo_set_source_rgb(cr, 0.1, 0.5, 0.1);
+
+	cairo_set_dash(cr, dashed1, len1, 0);
+	cairo_move_to(cr, p.x, p.y);
+	cairo_show_text(cr, d->name);
+
+	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
+	cairo_set_line_width (cr, 0.7);
+
+	p.x += ( (strlen(d->name) ) * 5 )/2;
+	p.y += SPACE;
+
+	cairo_move_to(cr, p.x, p.y);
+	cairo_line_to(cr, p.x, p.y + events_size * R_H);
+	cairo_stroke(cr);
+}
+
 /*
  * Draw all events receivede
  */
@@ -214,6 +265,11 @@ void draw(int op, int arg1, int arg2)
 	int new_height;
 	struct point p;
 	GtkRequisition size;
+
+	gpointer key, value;
+	GHashTableIter iter;
+
+	struct device_t *d;
 
 	gtk_widget_size_request(darea, &size);
 
@@ -239,6 +295,20 @@ void draw(int op, int arg1, int arg2)
 			draw_event(cairo_draw, e, p, 0);
 
 		p.y += R_H + SPACE;
+	}
+
+	g_hash_table_iter_init (&iter, connected_devices);
+
+	p.x = R_W + 4 * SPACE;
+	p.y = 2 * SPACE;
+
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		d = (struct device_t *) value;
+
+		draw_device_timeline(cairo_draw, d, p);
+		p.x += 10 * SPACE;
+
 	}
 }
 
@@ -374,8 +444,13 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
 	GtkWidget *packet_frame_scroll;
 	GtkRequisition size;
+	struct device_t *d;
 
 	gtk_init(&argc,&argv);
+
+	/* Init data structures */
+	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
+	connected_devices = g_hash_table_new(g_str_hash,g_str_equal);
 
 	/*Set variables */
 	mainloop = loop;
@@ -385,7 +460,13 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	packet_detail = gtk_label_new("");
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
-	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
+
+	/* device teste */
+	d = (struct device_t *) malloc(sizeof(struct device_t));
+	strcpy(d->address, "00:00:00:00");
+	strcpy(d->name, "Session");
+
+	add_device(d);
 
 	draw_handler_id=0;
 

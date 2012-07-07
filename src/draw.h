@@ -24,6 +24,8 @@
 #include <gtk/gtk.h>
 #include <sys/time.h>
 
+#define ADDRESS_LENGTH 20
+#define NAME_LENGTH 32
 struct event_t {
   int socket;
   struct timeval tv;
@@ -31,6 +33,11 @@ struct event_t {
   int type;
   char *data;
   int seq_number;
+};
+
+struct device_t{
+	char address[ADDRESS_LENGTH];
+	char name[NAME_LENGTH];
 };
 
 struct point{

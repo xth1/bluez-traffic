@@ -26,8 +26,6 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
 #include <glib.h>
-#include <stdlib.h>
-#include <time.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -107,12 +105,13 @@ struct event_t *get_event(int p)
 /*HASH TABLE FUNCTIONS */
 void g_hash_table_key_destroy(gpointer data)
 {
-	free(data);
+	/* do nothing */
 }
 
 void g_hash_table_value_destroy(gpointer data)
 {
-	free(data);
+	if(data != NULL)
+		free(data);
 }
 
 void add_device(struct device_t *device)
@@ -425,9 +424,27 @@ int find_event_at(struct point p, struct event_t **event_r)
 	return id_event;
 }
 
+void destroy_everything()
+{
+
+	gtk_widget_destroy(window);
+	gtk_widget_destroy(packet_frame);
+	gtk_widget_destroy(packet_detail);
+	gtk_widget_destroy(darea);
+	gtk_widget_destroy(draw_pixmap);
+
+	cairo_destroy(cairo_draw);
+
+	g_hash_table_destroy(connected_devices);
+
+	g_array_free(events, TRUE);
+}
+
+
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 								gpointer data)
 {
+	destroy_everything();
 	g_main_quit(mainloop);
 	gtk_main_quit();
 
@@ -445,7 +462,7 @@ gboolean on_expose_event(GtkWidget *widget,GdkEventExpose *event,
 				event->area.width, event->area.height);
 
 	if(need_draw){
-		draw(0,0,0);
+		draw(0, 0, 0);
 		need_draw = FALSE;
 	}
 
@@ -543,7 +560,9 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 
 	/* Init data structures */
 	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
-	connected_devices = g_hash_table_new(g_str_hash,g_str_equal);
+	connected_devices = g_hash_table_new_full(g_str_hash,g_str_equal,
+						g_hash_table_key_destroy,
+						g_hash_table_value_destroy);
 	draw_handler_id = 0;
 
 	/*Set variables */

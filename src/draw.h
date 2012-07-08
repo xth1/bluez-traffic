@@ -26,23 +26,31 @@
 
 #define ADDRESS_LENGTH 20
 #define NAME_LENGTH 32
-struct event_t {
+struct event_t{
   int socket;
   struct timeval tv;
   int index;
   int type;
   char *data;
   int seq_number;
-};
-
-struct device_t{
-	char address[ADDRESS_LENGTH];
-	char name[NAME_LENGTH];
+  int has_device;
+  char address_device[ADDRESS_LENGTH];
+  int direction;
 };
 
 struct point{
     int x,y;
 };
+
+struct device_t{
+	char address[ADDRESS_LENGTH];
+	char name[NAME_LENGTH];
+	int id_initial_event;
+	int id_least_event;
+	int x_position;
+};
+
+
 
 int draw_init(int argc, char **argv, GMainLoop *loop);
 void add_event(struct event_t *e);

@@ -246,7 +246,17 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	p.x += size * GAP_SIZE + SPACE;
 	cairo_move_to(cr, p.x, p.y);
 	cairo_show_text(cr, buff);
+	
+	/*Print name*/
+	cairo_set_source_rgb(cr, 0.1, 0.1, 0.4);
+	cairo_set_font_size(cr, FONT_SIZE + 1);
+	
+	sprintf(buff, "%s", e->name);
 
+	p.x = 12 * SPACE;
+	p.y += 2 * SPACE;
+	cairo_move_to(cr, p.x, p.y);
+	cairo_show_text(cr, buff);
 }
 
 void draw_device_timeline(cairo_t *cr, struct device_t *d, struct point p)
@@ -297,7 +307,8 @@ void draw_event_device_link(cairo_t *cr, struct point p1, struct point p2)
 	cairo_fill (cr);
 }
 
-void draw_devices_bar(cairo_t *cr,struct point p1,struct point p2){
+void draw_devices_bar(cairo_t *cr,struct point p1,struct point p2)
+{
 	cairo_move_to(cr, p1.x, p1.y);
 	cairo_set_source_rgb(cr, 0.96, 0.96, 0.96);
 	cairo_set_line_width (cr, 0);
@@ -359,6 +370,7 @@ void draw(int op, int arg1, int arg2)
 	p2.y = 3 * SPACE;
 	p2.x = DAREA_W;
 	draw_devices_bar(cairo_draw, p1, p2);
+
 	/* Draw session timeline */
 	sp.x = R_W + 4 * SPACE;
 	sp.y = 2 * SPACE;

@@ -26,12 +26,14 @@
 
 #define ADDRESS_LENGTH 20
 #define NAME_LENGTH 32
+#define EVENT_NAME_LENGTH 128
 struct event_t{
   int socket;
   struct timeval tv;
   int index;
   int type;
   char *data;
+  char name[EVENT_NAME_LENGTH];
   int seq_number;
   int has_device;
   char address_device[ADDRESS_LENGTH];

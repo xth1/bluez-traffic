@@ -27,12 +27,14 @@
 #define ADDRESS_LENGTH 20
 #define NAME_LENGTH 32
 #define EVENT_NAME_LENGTH 128
+#define EVENT_TYPE_LENGTH 32
 struct event_t{
   int socket;
   struct timeval tv;
   int index;
   int type;
   char *data;
+  char type_str[EVENT_TYPE_LENGTH];
   char name[EVENT_NAME_LENGTH];
   int seq_number;
   int has_device;
@@ -51,8 +53,6 @@ struct device_t{
 	int id_least_event;
 	int x_position;
 };
-
-
 
 int draw_init(int argc, char **argv, GMainLoop *loop);
 void add_event(struct event_t *e);

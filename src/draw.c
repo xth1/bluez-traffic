@@ -240,17 +240,20 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	/*Print operation code*/
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
-
-	sprintf(buff, "OPCODE: 0x%2.2x", e->type);
+	
+	if(strcmp(e->type_str, "") == 0)
+		sprintf(buff, "OPCODE: 0x%2.2x", e->type);
+	else
+		sprintf(buff, "%s", e->type_str);
 
 	p.x += size * GAP_SIZE + SPACE;
 	cairo_move_to(cr, p.x, p.y);
 	cairo_show_text(cr, buff);
-	
+
 	/*Print name*/
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.4);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
-	
+
 	sprintf(buff, "%s", e->name);
 
 	p.x = 12 * SPACE;

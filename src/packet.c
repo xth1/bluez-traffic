@@ -164,6 +164,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e = malloc(sizeof(struct event_t));
 
 	strcpy(e->name,"");
+	strcpy(e->type_str,"");
 
 	switch (opcode) {
 	case MONITOR_NEW_INDEX:
@@ -175,7 +176,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		printf("New Device [ %d %d %s]",ni->type, ni->bus, ni->name);
 		break;
 	case MONITOR_COMMAND_PKT:
-		packet_hci_command(e->name,tv, index, data, size);
+		packet_hci_command(e->name, e->type_str,tv, index, data, size);
 		printf("Command %s\n",e->name);
 		break;
 	}
@@ -475,7 +476,8 @@ static const char *opcode2str(uint16_t opcode)
 	return "Unknown";
 }
 
-void packet_hci_command(char *out, struct timeval *tv, uint16_t index,
+void packet_hci_command(char *name_out,char *type_out, 
+					struct timeval *tv, uint16_t index,
 					const void *data, uint16_t size)
 {
 	const hci_command_hdr *hdr = data;
@@ -485,12 +487,12 @@ void packet_hci_command(char *out, struct timeval *tv, uint16_t index,
 
 	/*btsnoop_write(tv, index, 0x02, data, size);*/
 
-	if (size < HCI_COMMAND_HDR_SIZE) {
+	if (size < HCI_COMMAND_HDR_SIZE){
 		printf("* Malformed HCI Command packet\n");
 		return;
 	}
-
-	sprintf(out,"HCI Command: %s\n",
+	sprintf(type_out,"HCI Command");
+	sprintf(name_out,"%s\n",
 				opcode2str(opcode), ogf, ocf, hdr->plen);
 
 	data += HCI_COMMAND_HDR_SIZE;

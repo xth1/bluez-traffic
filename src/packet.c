@@ -173,11 +173,12 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		if (index < MAX_INDEX)
 			memcpy(&index_list[index], ni, MONITOR_NEW_INDEX_SIZE);
 		ba2str(&ni->bdaddr, str);
-		printf("New Device [ %d %d %s]",ni->type, ni->bus, ni->name);
 		break;
 	case MONITOR_COMMAND_PKT:
 		packet_hci_command(e->name, e->type_str,tv, index, data, size);
-		printf("Command %s\n",e->name);
+		break;
+	case MONITOR_EVENT_PKT:
+		packet_hci_event(e->name, e->type_str, tv, index, data, size);
 		break;
 	}
 
@@ -476,9 +477,9 @@ static const char *opcode2str(uint16_t opcode)
 	return "Unknown";
 }
 
-void packet_hci_command(char *name_out,char *type_out, 
-					struct timeval *tv, uint16_t index,
-					const void *data, uint16_t size)
+void packet_hci_command(char *name_out,char *type_out,
+			struct timeval *tv, uint16_t index,
+			const void *data, uint16_t size)
 {
 	const hci_command_hdr *hdr = data;
 	uint16_t opcode = btohs(hdr->opcode);
@@ -491,10 +492,122 @@ void packet_hci_command(char *name_out,char *type_out,
 		printf("* Malformed HCI Command packet\n");
 		return;
 	}
-	sprintf(type_out,"HCI Command");
-	sprintf(name_out,"%s\n",
+	sprintf(type_out,"< HCI Command");
+	sprintf(name_out,"%s (0x%2.2x) plen %d\n\n",
 				opcode2str(opcode), ogf, ocf, hdr->plen);
 
 	data += HCI_COMMAND_HDR_SIZE;
 	size -= HCI_COMMAND_HDR_SIZE;
+}
+
+static const struct {
+	uint8_t event;
+	const char *str;
+} event2str_table[] = {
+	{ 0x01, "Inquiry Complete"			},
+	{ 0x02, "Inquiry Result"			},
+	{ 0x03, "Connect Complete"			},
+	{ 0x04, "Connect Request"			},
+	{ 0x05, "Disconn Complete"			},
+	{ 0x06, "Auth Complete"				},
+	{ 0x07, "Remote Name Req Complete"		},
+	{ 0x08, "Encrypt Change"			},
+	{ 0x09, "Change Connection Link Key Complete"	},
+	{ 0x0a, "Master Link Key Complete"		},
+	{ 0x0b, "Read Remote Supported Features"	},
+	{ 0x0c, "Read Remote Version Complete"		},
+	{ 0x0d, "QoS Setup Complete"			},
+	{ 0x0e, "Command Complete"			},
+	{ 0x0f, "Command Status"			},
+	{ 0x10, "Hardware Error"			},
+	{ 0x11, "Flush Occurred"			},
+	{ 0x12, "Role Change"				},
+	{ 0x13, "Number of Completed Packets"		},
+	{ 0x14, "Mode Change"				},
+	{ 0x15, "Return Link Keys"			},
+	{ 0x16, "PIN Code Request"			},
+	{ 0x17, "Link Key Request"			},
+	{ 0x18, "Link Key Notification"			},
+	{ 0x19, "Loopback Command"			},
+	{ 0x1a, "Data Buffer Overflow"			},
+	{ 0x1b, "Max Slots Change"			},
+	{ 0x1c, "Read Clock Offset Complete"		},
+	{ 0x1d, "Connection Packet Type Changed"	},
+	{ 0x1e, "QoS Violation"				},
+	{ 0x1f, "Page Scan Mode Change"			},
+	{ 0x20, "Page Scan Repetition Mode Change"	},
+	{ 0x21, "Flow Specification Complete"		},
+	{ 0x22, "Inquiry Result with RSSI"		},
+	{ 0x23, "Read Remote Extended Features"		},
+	/* reserved events */
+	{ 0x2c, "Synchronous Connect Complete"		},
+	{ 0x2d, "Synchronous Connect Changed"		},
+	{ 0x2e, "Sniff Subrate"				},
+	{ 0x2f, "Extended Inquiry Result"		},
+	{ 0x30, "Encryption Key Refresh Complete"	},
+	{ 0x31, "IO Capability Request"			},
+	{ 0x32, "IO Capability Response"		},
+	{ 0x33, "User Confirmation Request"		},
+	{ 0x34, "User Passkey Request"			},
+	{ 0x35, "Remote OOB Data Request"		},
+	{ 0x36, "Simple Pairing Complete"		},
+	/* reserved event */
+	{ 0x38, "Link Supervision Timeout Change"	},
+	{ 0x39, "Enhanced Flush Complete"		},
+	/* reserved event */
+	{ 0x3b, "User Passkey Notification"		},
+	{ 0x3c, "Keypress Notification"			},
+	{ 0x3d, "Remote Host Supported Features"	},
+	{ 0x3e, "LE Meta Event"				},
+	/* reserved event */
+	{ 0x40, "Physical Link Complete"		},
+	{ 0x41, "Channel Selected"			},
+	{ 0x42, "Disconn Physical Link Complete"	},
+	{ 0x43, "Physical Link Loss Early Warning"	},
+	{ 0x44, "Physical Link Recovery"		},
+	{ 0x45, "Logical Link Complete"			},
+	{ 0x46, "Disconn Logical Link Complete"		},
+	{ 0x47, "Flow Spec Modify Complete"		},
+	{ 0x48, "Number Of Completed Data Blocks"	},
+	{ 0x49, "AMP Start Test"			},
+	{ 0x4a, "AMP Test End"				},
+	{ 0x4b, "AMP Receiver Report"			},
+	{ 0x4c, "Short Range Mode Change Complete"	},
+	{ 0x4d, "AMP Status Change"			},
+	{ 0xfe, "Testing"				},
+	{ 0xff, "Vendor"				},
+	{ }
+};
+
+static const char *event2str(uint8_t event)
+{
+	int i;
+
+	for (i = 0; event2str_table[i].str; i++) {
+		if (event2str_table[i].event == event)
+			return event2str_table[i].str;
+	}
+
+	return "Unknown";
+}
+
+void packet_hci_event(char *name_out,char *type_out,
+			struct timeval *tv, uint16_t index,
+			const void *data, uint16_t size)
+{
+	const hci_event_hdr *hdr = data;
+
+	if (size < HCI_EVENT_HDR_SIZE) {
+		printf("* Malformed HCI Event packet\n");
+		return;
+	}
+	sprintf(type_out,"> HCI Event");
+
+	sprintf(name_out,"%s (0x%2.2x) plen %d\n",
+				event2str(hdr->evt), hdr->evt, hdr->plen);
+
+	data += HCI_EVENT_HDR_SIZE;
+	size -= HCI_EVENT_HDR_SIZE;
+
+	packet_hexdump(data, size);
 }

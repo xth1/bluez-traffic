@@ -240,7 +240,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	/*Print operation code*/
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
-	
+
 	if(strcmp(e->type_str, "") == 0)
 		sprintf(buff, "OPCODE: 0x%2.2x", e->type);
 	else

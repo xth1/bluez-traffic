@@ -102,7 +102,7 @@ struct event_t *get_event(int p)
 	return g_array_index(events, void *, p);
 }
 
-/*HASH TABLE FUNCTIONS */
+/* HASH TABLE FUNCTIONS */
 void g_hash_table_key_destroy(gpointer data)
 {
 	/* do nothing */
@@ -146,7 +146,8 @@ void create_draw_pixmap(GtkWidget *widget)
 
 	new_width = size.width + PIXMAP_GROW_WIDTH;
 	new_height = size.height + PIXMAP_GROW_HEIGHT;
-
+	
+	/* Create a new pixmap with new size */
 	if (draw_pixmap)
 		g_object_unref(draw_pixmap);
 
@@ -176,7 +177,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 
 	cairo_set_dash(cr, NULL, 0, 0);
 
-	/*Draw retangle */
+	/* Draw rectangle */
 	cairo_move_to(cr, p.x, p.y);
 	p.x += SPACE;
 	p.y += SPACE;
@@ -207,7 +208,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_set_font_size(cr, FONT_SIZE);
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
 
-	/*Print date*/
+	/* Print date */
 	t = (e->tv).tv_sec;
 	localtime_r(&t, &tm);
 
@@ -217,13 +218,13 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_show_text(cr,buff);
 	size=strlen(buff);
 
-	/*Print time*/
+	/* Print time */
 	sprintf(buff, "%02d:%02d:%02d.%06lu ", tm.tm_hour, tm.tm_min,
 					 tm.tm_sec, (e->tv).tv_usec);
 	cairo_move_to(cr, p.x, p.y + 2 * SPACE);
 	cairo_show_text(cr, buff);
 
-	/*Print adapter index*/
+	/* Print adapter index */
 	cairo_set_source_rgb(cr, 0.3, 0.0, 0.0);
 	cairo_set_font_size(cr, FONT_SIZE + 2);
 
@@ -237,7 +238,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_show_text(cr, buff);
 	size=strlen(buff);
 
-	/*Print operation code*/
+	/* Print operation code */
 	cairo_set_source_rgb(cr, 0.1, 0.1, 0.4);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
 
@@ -250,7 +251,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_move_to(cr, p.x, p.y);
 	cairo_show_text(cr, buff);
 
-	/*Print name*/
+	/* Print name */
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
 
@@ -269,7 +270,7 @@ void draw_device_timeline(cairo_t *cr, struct device_t *d, struct point p)
 	int initial_height;
 	int least_height;
 
-	/* print device name */
+	/* Print device name */
 	cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL,
 						CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_font_size(cr, 11);
@@ -281,7 +282,7 @@ void draw_device_timeline(cairo_t *cr, struct device_t *d, struct point p)
 
 	p.y += SPACE;
 
-	/* set timeline height */
+	/* Set timeline height */
 	initial_height = p.y + (events_size - d->id_initial_event) * (R_H + SPACE);
 
 	if(d->id_least_event == -1)
@@ -291,7 +292,7 @@ void draw_device_timeline(cairo_t *cr, struct device_t *d, struct point p)
 
 	initial_height += 2 * SPACE;
 
-	/* draw timeline */
+	/* Draw timeline */
 	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_line_width (cr, 0.7);
 	cairo_move_to(cr, p.x, initial_height);
@@ -350,7 +351,7 @@ void draw(int op, int arg1, int arg2)
 		create_draw_pixmap(darea);
 	}
 
-	/* Draw events*/
+	/* Draw events */
 	p.x = 0;
 	p.y = 3 * SPACE;
 	if(op & EVENT_SELECTED){
@@ -424,7 +425,7 @@ int find_event_at(struct point p, struct event_t **event_r)
 
 	id_event = (p.y - 4 * SPACE) / (R_H + SPACE);
 
-	if((p.y - 4 * SPACE) < 0 || id_event >= events_size)
+	if( (p.y - 4 * SPACE) < 0 || id_event >= events_size)
 		return -1;
 
 	event = get_event(id_event);
@@ -509,7 +510,7 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 		return TRUE;
 	}
 
-	/* redraw event */
+	/* Redraw event */
 	if(event->seq_number != event_selected_seq_number){
 		event_selected_seq_number = event->seq_number;
 
@@ -537,7 +538,7 @@ void add_event(struct event_t *e)
 	g_array_prepend_val(events, e);
 	events_size++;
 
-	/* for test only */
+	/* For test only */
 	e->has_device = 1;
 
 	if(events_size % 3)
@@ -547,11 +548,11 @@ void add_event(struct event_t *e)
 	else
 		strcpy(e->address_device, TEST_ADDRESS3);
 
-	/*Add expose event handler, if it don't exist*/
+	/* Add expose event handler, if it don't exist */
 	if(draw_handler_id == 0)
 		draw_handler_id = g_signal_connect(darea, "expose-event",
 					G_CALLBACK(on_expose_event),NULL);
-	/*Initial event*/
+	/* Initial event */
 	if(draw_pixmap == NULL){
 		create_draw_pixmap(darea);
 		draw(0, 0, 0);
@@ -560,7 +561,7 @@ void add_event(struct event_t *e)
 	need_draw = TRUE;
 	create_draw_pixmap(darea);
 
-	/*Launch darea expose event*/
+	/* Launch darea expose event */
 	gtk_widget_queue_draw(darea);
 }
 
@@ -580,7 +581,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 						g_hash_table_value_destroy);
 	draw_handler_id = 0;
 
-	/*Set variables */
+	/* Set variables */
 	mainloop = loop;
 	window = gtk_window_new(0);
 	darea = gtk_drawing_area_new();
@@ -589,7 +590,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
 
-	/* session timeline */
+	/* Session timeline */
 	session_timeline = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(session_timeline->address, "");
 	strcpy(session_timeline->name, "Session");
@@ -597,7 +598,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	session_timeline->id_initial_event = 0;
 	session_timeline->id_least_event = -1;
 
-	/* devices for test */
+	/* Devices for test */
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS);
 	strcpy(d->name, "Test");
@@ -625,14 +626,14 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 
 	add_device(d);
 
-	/*Set window attributes*/
+	/* Set window attributes */
 	gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
 
-	/*Add layout manager */
+	/* Add layout manager */
 	vbox = gtk_vbox_new(FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
-	/*Add menubar*/
+	/* Add menubar */
 	menubar = gtk_menu_bar_new();
 	filemenu = gtk_menu_new();
 
@@ -647,7 +648,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
 
-	/* Add scrollable drawing area*/
+	/* Add scrollable drawing area */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);

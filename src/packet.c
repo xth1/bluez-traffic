@@ -21,6 +21,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -53,6 +54,9 @@
 #define MONITOR_SCO_RX_PKT	7
 
 #define HEXDUMP_LENGTH 4096
+
+#define ADDRESS_LEN 21
+static char address[ADDRESS_LEN];
 
 struct monitor_new_index {
 	uint8_t  type;
@@ -112,12 +116,13 @@ void packet_hexdump(const unsigned char *buf, uint16_t len)
 }
 
 void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
-								unsigned char *out)
+								unsigned char *out,char *adr)
 {
 	static const char hexdigits[] = "0123456789abcdef";
 	char str[68];
 	char aux[68];
-	uint16_t i;
+	uint16_t i,j;
+	int has_address = 0;
 
 	if (!len)
 		return;
@@ -135,7 +140,18 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 			sprintf(aux,"%c%s\n", ' ', str);
 			strcat(out,aux);
 			str[0] = ' ';
+			/*take address*/
+			if(!has_address){
+				for(j = 0; j < 17;j++){
+					adr[j] = str[17 - i];
+				}
+				adr[18]='\0';
+				has_address = 1;
+				
+				printf("Address %s\n",adr);
+			}
 		}
+		
 	}
 
 	if (i % 16 > 0) {
@@ -195,7 +211,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->index = index;
 	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
 
-	packet_hexdump_to_string(data, size, e->data);
+	packet_hexdump_to_string(data, size, e->data, address);
 	e->type = opcode;
 	add_event(e);
 
@@ -220,7 +236,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->index = index;
 
 	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
-	packet_hexdump_to_string(data, size, e->data);
+	packet_hexdump_to_string(data, size, e->data,address);
 
 	e->type = opcode;
 	add_event(e);

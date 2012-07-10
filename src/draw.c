@@ -63,9 +63,9 @@
 
 #define PI (3.14159265358979323846f)
 
-#define TEST_ADDRESS "20:01:01:21"
-#define TEST_ADDRESS2 "20:34:31:13"
-#define TEST_ADDRESS3 "20:34:43:13"
+#define TEST_ADDRESS "20:00:00:01:01:21"
+#define TEST_ADDRESS2 "20:00:00:34:31:13"
+#define TEST_ADDRESS3 "20:00:00:34:43:13"
 
 static GtkWidget *window;
 static GtkWidget *darea;
@@ -238,7 +238,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	size=strlen(buff);
 
 	/*Print operation code*/
-	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
+	cairo_set_source_rgb(cr, 0.1, 0.1, 0.4);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
 
 	if(strcmp(e->type_str, "") == 0)
@@ -251,7 +251,7 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_show_text(cr, buff);
 
 	/*Print name*/
-	cairo_set_source_rgb(cr, 0.1, 0.1, 0.4);
+	cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 	cairo_set_font_size(cr, FONT_SIZE + 1);
 
 	sprintf(buff, "%s", e->name);

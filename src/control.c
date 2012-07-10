@@ -175,6 +175,7 @@ int control_tracing(void)
 		return -1;
 
 	control_watch = open_channel(HCI_CHANNEL_CONTROL);
+	
 	if (!control_watch) {
 		g_source_remove(monitor_watch);
 		return -1;

@@ -67,11 +67,12 @@
 #define TEST_ADDRESS2 "20:00:00:34:31:13"
 #define TEST_ADDRESS3 "20:00:00:34:43:13"
 
-static GtkWidget *window;
-static GtkWidget *darea;
-static GtkWidget *packet_frame;
-static GtkWidget *packet_detail;
-static GMainLoop *mainloop;
+static GtkWidget *window = NULL;
+static GtkWidget *darea = NULL;
+static GtkWidget *packet_frame = NULL;
+static GtkWidget *packet_detail = NULL;
+static GMainLoop *mainloop = NULL;
+static GtkWidget *device_filters_dialog = NULL;
 
 static unsigned char hexdump_buff[MAX_BUFF];
 
@@ -79,6 +80,10 @@ static GtkWidget *loading_dialog;
 
 static GdkPixmap *draw_pixmap = NULL;
 static cairo_t *cairo_draw = NULL;
+
+/* Devices check-box */
+
+GHashTable *devices_check = NULL;
 
 /* Array of events */
 static GArray *events;
@@ -128,6 +133,31 @@ struct device_t *get_device(char *address)
 	return d;
 }
 
+gboolean filter_device(struct device_t *d)
+{
+	if(d->is_active)
+		return TRUE;
+	return FALSE;	
+}
+
+gboolean filter_event(struct event_t *e)
+{
+	struct device_t *d;
+	d = g_hash_table_lookup(connected_devices, e->address_device);
+	if(filter_device(d))
+		return TRUE;
+	return FALSE;	
+}
+
+void clear_pixmap(GtkWidget *widget, int width, int height)
+{
+		gdk_draw_rectangle(draw_pixmap,
+				widget->style->white_gc,
+				TRUE,
+				0, 0,
+				width,
+				height);
+}
 void create_draw_pixmap(GtkWidget *widget)
 {
 	GtkRequisition size;
@@ -146,7 +176,7 @@ void create_draw_pixmap(GtkWidget *widget)
 
 	new_width = size.width + PIXMAP_GROW_WIDTH;
 	new_height = size.height + PIXMAP_GROW_HEIGHT;
-	
+
 	/* Create a new pixmap with new size */
 	if (draw_pixmap)
 		g_object_unref(draw_pixmap);
@@ -155,13 +185,8 @@ void create_draw_pixmap(GtkWidget *widget)
 				new_width,
 				new_height,
 				-1);
+	clear_pixmap(widget, new_width, new_height);
 
-	gdk_draw_rectangle(draw_pixmap,
-				widget->style->white_gc,
-				TRUE,
-				0, 0,
-				new_width,
-				new_height);
 	if(cairo_draw)
 		cairo_destroy(cairo_draw);
 
@@ -350,6 +375,8 @@ void draw(int op, int arg1, int arg2)
 		gtk_widget_set_size_request(darea, size.width, new_height);
 		create_draw_pixmap(darea);
 	}
+	
+	clear_pixmap(darea, size.width, size.height);
 
 	/* Draw events */
 	p.x = 0;
@@ -361,6 +388,8 @@ void draw(int op, int arg1, int arg2)
 
 	for(i = 0; i < events_size; i++){
 		e = get_event(i);
+		if(filter_event(e) == FALSE)
+			continue;
 		if(e->seq_number == event_selected_seq_number)
 			draw_event(cairo_draw, e, p, EVENT_SELECTED);
 		else
@@ -389,7 +418,8 @@ void draw(int op, int arg1, int arg2)
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
-
+		if(d->is_active == FALSE)
+			continue;
 		draw_device_timeline(cairo_draw, d, p);
 		d->x_position = p.x;
 		p.x += 10 * SPACE;
@@ -401,7 +431,7 @@ void draw(int op, int arg1, int arg2)
 	/* Draw events "links" */
 	for(i = 0; i < events_size; i++){
 		e = get_event(i);
-		if( e->has_device){
+		if(filter_event(e) && e->has_device){
 			d = get_device( e->address_device);
 
 			if(d == NULL)
@@ -440,7 +470,7 @@ int find_event_at(struct point p, struct event_t **event_r)
 	return id_event;
 }
 
-void destroy_everything()
+void destroy_widgets()
 {
 
 	gtk_widget_destroy(window);
@@ -460,7 +490,7 @@ void destroy_everything()
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 								gpointer data)
 {
-	destroy_everything();
+	destroy_widgets();
 	g_main_quit(mainloop);
 	gtk_main_quit();
 
@@ -567,57 +597,77 @@ void add_event(struct event_t *e)
 void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
-	GtkWidget * dialog = (GArray *) user_data;
+	GHashTableIter iter;
+	GtkCheckButton *chk;
+	gpointer key, value;
+	struct device_t *d;
 	
-	//g_array_free(user_data, TRUE);
-	gtk_widget_destroy(dialog);
+	/* */
+	g_hash_table_iter_init (&iter, devices_check);
 	
+	while (g_hash_table_iter_next (&iter, &key, &value)){
+		chk = (GtkCheckButton *) value;
+		d = (struct device_t *) g_hash_table_lookup(connected_devices, (char *) key);
+		d->is_active = gtk_toggle_button_get_active(chk);
+	}
+	
+	/* Free resourses */
+	gtk_widget_destroy(device_filters_dialog);
+	device_filters_dialog = NULL;
+	
+	g_hash_table_destroy(devices_check);
+	devices_check = NULL;
+	/* Redraw */
+	
+	draw(0,0,0);
+	gtk_widget_queue_draw(darea);
 }
-void device_filters_dialog () 
+void create_device_filters_dialog ()
 {
-   GtkWidget *dialog, *label, *content_area;
-   GtkWidget *check;
-   char buff[256];
-   gpointer key, value;
-   GHashTableIter iter;
-   struct device_t *d;
-   GArray * devices_check;
+	GtkWidget *dialog, *label, *content_area;
+	GtkWidget *check;
+	char buff[256];
+	gpointer key, value;
+	GHashTableIter iter;
+	struct device_t *d;
    
-   devices_check = g_array_new (TRUE, TRUE, sizeof(GtkWidget *));
-   
-   dialog = gtk_dialog_new_with_buttons ("Devices fiters",
+	if(devices_check != NULL || device_filters_dialog != NULL)
+		return;
+	devices_check = g_hash_table_new (g_str_hash, g_str_equal);
+
+	device_filters_dialog = gtk_dialog_new_with_buttons ("Devices fiters",
                                          window,
                                          GTK_DIALOG_DESTROY_WITH_PARENT,
                                          GTK_STOCK_OK,
                                          GTK_RESPONSE_NONE,
                                          NULL);
-   content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-   label = gtk_label_new ("Devices");
-   gtk_container_add (GTK_CONTAINER (content_area), label);
-   
-   /* Add devices check box */
-   g_hash_table_iter_init (&iter, connected_devices);
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (device_filters_dialog));
+	label = gtk_label_new ("Devices");
+	gtk_container_add (GTK_CONTAINER (content_area), label);
 
+   /* Add devices check box */
+	g_hash_table_iter_init (&iter, connected_devices);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
-		sprintf(buff,"%s: %s", d->address, d->name); 
+		sprintf(buff,"%s: %s", d->address, d->name);
 		check =  gtk_check_button_new_with_label(buff);
+		gtk_toggle_button_set_active(check, d->is_active);
+		g_hash_table_insert(devices_check, d->address, check);
 		gtk_container_add (GTK_CONTAINER (content_area), check);
 	}
-   
-   g_signal_connect_swapped (dialog,
+
+   g_signal_connect_swapped (device_filters_dialog,
                              "response",
                              G_CALLBACK (on_device_dialog_response),
-                             dialog);
-   
-   gtk_widget_show_all (dialog);
+                             devices_check);
+   gtk_widget_show_all (device_filters_dialog);
 }
 
 void on_device_filters_click(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
-	device_filters_dialog();
+	create_device_filters_dialog();
 }
 
 int draw_init(int argc,char **argv,GMainLoop *loop)
@@ -658,7 +708,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS);
 	strcpy(d->name, "Test");
-
+	d->is_active = TRUE;
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
@@ -667,7 +717,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS2);
 	strcpy(d->name, "Test2");
-
+	d->is_active = TRUE;
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
@@ -676,7 +726,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS3);
 	strcpy(d->name, "Test3");
-
+	d->is_active = TRUE;
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
@@ -692,11 +742,11 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	/* Add menubar */
 	menubar = gtk_menu_bar_new();
 	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-	
+
 	/* File menu */
 	filemenu = gtk_menu_new();
 	file = gtk_menu_item_new_with_mnemonic("_File");
-	
+
 	quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
 	g_signal_connect(quit, "activate", G_CALLBACK(on_destroy_event),
 							(gpointer) quit);
@@ -704,14 +754,14 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
-	
+
 	/* Filters menu */
 	filters_menu = gtk_menu_new();
 	filters = gtk_menu_item_new_with_mnemonic("_Filters");
 	device_filter = gtk_menu_item_new_with_mnemonic("_Devices");
 		g_signal_connect(device_filter, "activate", G_CALLBACK(on_device_filters_click),
 							(gpointer) device_filter);
-	
+
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filters), filters_menu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filters_menu), device_filter);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), filters);

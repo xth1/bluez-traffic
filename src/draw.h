@@ -23,7 +23,7 @@
 
 #include <gtk/gtk.h>
 #include <sys/time.h>
-
+#include <glib.h>
 #define ADDRESS_LENGTH 20
 #define NAME_LENGTH 32
 #define EVENT_NAME_LENGTH 128
@@ -53,6 +53,7 @@ struct device_t{
 	int id_initial_event;
 	int id_least_event;
 	int x_position;
+	gboolean is_active;
 };
 
 int draw_init(int argc, char **argv, GMainLoop *loop);

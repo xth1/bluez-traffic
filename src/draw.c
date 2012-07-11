@@ -307,7 +307,7 @@ void draw_event_device_link(cairo_t *cr, struct point p1, struct point p2)
 	cairo_move_to(cr, p1.x, p1.y);
 	cairo_line_to(cr, p2.x, p2.y);
 	cairo_stroke(cr);
-	cairo_arc (cr, p2.x, p2.y, 3.0, 0, 2*PI);
+	cairo_arc (cr, p2.x, p2.y, 3.0, 0, 2 * PI);
 	cairo_fill (cr);
 }
 
@@ -564,10 +564,66 @@ void add_event(struct event_t *e)
 	/* Launch darea expose event */
 	gtk_widget_queue_draw(darea);
 }
+void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
+				gpointer user_data)
+{
+	GtkWidget * dialog = (GArray *) user_data;
+	
+	//g_array_free(user_data, TRUE);
+	gtk_widget_destroy(dialog);
+	
+}
+void device_filters_dialog () 
+{
+   GtkWidget *dialog, *label, *content_area;
+   GtkWidget *check;
+   char buff[256];
+   gpointer key, value;
+   GHashTableIter iter;
+   struct device_t *d;
+   GArray * devices_check;
+   
+   devices_check = g_array_new (TRUE, TRUE, sizeof(GtkWidget *));
+   
+   dialog = gtk_dialog_new_with_buttons ("Devices fiters",
+                                         window,
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_STOCK_OK,
+                                         GTK_RESPONSE_NONE,
+                                         NULL);
+   content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+   label = gtk_label_new ("Devices");
+   gtk_container_add (GTK_CONTAINER (content_area), label);
+   
+   /* Add devices check box */
+   g_hash_table_iter_init (&iter, connected_devices);
+
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		d = (struct device_t *) value;
+		sprintf(buff,"%s: %s", d->address, d->name); 
+		check =  gtk_check_button_new_with_label(buff);
+		gtk_container_add (GTK_CONTAINER (content_area), check);
+	}
+   
+   g_signal_connect_swapped (dialog,
+                             "response",
+                             G_CALLBACK (on_device_dialog_response),
+                             dialog);
+   
+   gtk_widget_show_all (dialog);
+}
+
+void on_device_filters_click(GtkWidget *widget, GdkEventButton *mouse_event,
+				gpointer user_data)
+{
+	device_filters_dialog();
+}
 
 int draw_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
+	GtkWidget *filters, *filters_menu, *device_filter;
 	GtkWidget *packet_frame_scroll;
 	GtkRequisition size;
 	struct device_t *d;
@@ -635,10 +691,12 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 
 	/* Add menubar */
 	menubar = gtk_menu_bar_new();
+	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+	
+	/* File menu */
 	filemenu = gtk_menu_new();
-
 	file = gtk_menu_item_new_with_mnemonic("_File");
-
+	
 	quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
 	g_signal_connect(quit, "activate", G_CALLBACK(on_destroy_event),
 							(gpointer) quit);
@@ -646,12 +704,23 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
-	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+	
+	/* Filters menu */
+	filters_menu = gtk_menu_new();
+	filters = gtk_menu_item_new_with_mnemonic("_Filters");
+	device_filter = gtk_menu_item_new_with_mnemonic("_Devices");
+		g_signal_connect(device_filter, "activate", G_CALLBACK(on_device_filters_click),
+							(gpointer) device_filter);
+	
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filters), filters_menu);
+	gtk_menu_shell_append(GTK_MENU_SHELL(filters_menu), device_filter);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), filters);
 
 	/* Add scrollable drawing area */
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox),
+	 sw, TRUE, TRUE, 0);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw),
 								darea);
 	/* Add packet details frame */

@@ -120,7 +120,7 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 {
 	static const char hexdigits[] = "0123456789abcdef";
 	char str[68];
-	char aux[68];
+	char aux[80];
 	uint16_t i,j;
 	int has_address = 0;
 
@@ -141,7 +141,7 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 			strcat(out,aux);
 			str[0] = ' ';
 			/*take address*/
-			if(!has_address){
+			/*if(!has_address){
 				for(j = 0; j < 17;j++){
 					adr[j] = str[17 - i];
 				}
@@ -150,6 +150,7 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 				
 				printf("Address %s\n",adr);
 			}
+			*/ 
 		}
 		
 	}
@@ -230,7 +231,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	if (!e)
 		return -ENOMEM;
 
-	/*generate event*/
+	/* Generate event */
 	e->socket = HCI_CHANNEL_CONTROL;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;

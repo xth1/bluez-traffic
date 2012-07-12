@@ -11,8 +11,8 @@ This is a  GSOC 2012 project, the objective is write a tool
 to visualize Bluetooth traffic as sequence diagrams.
 
 Developed by:
-Student Thiago da Silva Arruda <thiago.xth1@gmail.com>
-Mentor Gustavo Padovan <gustavo@padovan.org> 
+Thiago da Silva Arruda <thiago.xth1@gmail.com>, Student
+Gustavo Padovan <gustavo@padovan.org>, Mentor
 
 Compilation and installation
 ============================
@@ -37,7 +37,6 @@ Configure automatically searches for all required components and packages.
 
 To compile and install run:
 	make && make install
-
 
 Information
 ===========

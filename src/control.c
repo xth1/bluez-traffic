@@ -65,6 +65,32 @@ static void mgmt_index_removed(uint16_t len, const void *buf,
 	strcpy(address_out,"");
 }
 
+static void mgmt_controller_error(uint16_t len, const void *buf,	
+								char *name_out, char *address_out)
+{
+	const struct mgmt_ev_controller_error *ev = buf;
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Controller Error control\n");
+		
+		sprintf(name_out, "* Malformed Controller Error control");	
+		strcpy(address_out,"");
+		return;
+	}
+
+	printf("@ Controller Error: 0x%2.2x\n", ev->error_code);
+	
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(name_out, "@ Controller Error: 0x%2.2x\n", ev->error_code);	
+	strcpy(address_out,"");
+	
+}
+
+
 
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					char *name_out, char *address_out)
@@ -76,10 +102,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_INDEX_REMOVED:
 		mgmt_index_removed(size, data, name_out, address_out);
 		break;
-/*	case MGMT_EV_CONTROLLER_ERROR:
-		mgmt_controller_error(size, data);
+	case MGMT_EV_CONTROLLER_ERROR:
+		mgmt_controller_error(size, data, name_out, address_out);
 		break;
-	case MGMT_EV_NEW_SETTINGS:
+/*	case MGMT_EV_NEW_SETTINGS:
 		mgmt_new_settings(size, data);
 		break;
 	case MGMT_EV_CLASS_OF_DEV_CHANGED:

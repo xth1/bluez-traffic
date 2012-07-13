@@ -43,6 +43,91 @@
 static guint monitor_watch;
 static guint control_watch;
 
+
+static void mgmt_index_added(uint16_t len, const void *buf,
+							char *name_out, char *address_out)
+{
+	printf("@ Index Added\n");
+	packet_hexdump(buf, len);
+
+	sprintf(name_out, "@ Index Added");	
+	strcpy(address_out,"");
+}
+
+void control_message(uint16_t opcode, const void *data, uint16_t size,
+					char *name_out, char *address_out)
+{
+	switch (opcode) {
+	case MGMT_EV_INDEX_ADDED:
+		mgmt_index_added(size, data, name_out, address_out);
+		break;
+/*	case MGMT_EV_INDEX_REMOVED:
+		mgmt_index_removed(size, data);
+		break;
+	case MGMT_EV_CONTROLLER_ERROR:
+		mgmt_controller_error(size, data);
+		break;
+	case MGMT_EV_NEW_SETTINGS:
+		mgmt_new_settings(size, data);
+		break;
+	case MGMT_EV_CLASS_OF_DEV_CHANGED:
+		mgmt_class_of_dev_changed(size, data);
+		break;
+	case MGMT_EV_LOCAL_NAME_CHANGED:
+		mgmt_local_name_changed(size, data);
+		break;
+	case MGMT_EV_NEW_LINK_KEY:
+		mgmt_new_link_key(size, data);
+		break;
+	case MGMT_EV_NEW_LONG_TERM_KEY:
+		mgmt_new_long_term_key(size, data);
+		break;
+	case MGMT_EV_DEVICE_CONNECTED:
+		mgmt_device_connected(size, data);
+		break;
+	case MGMT_EV_DEVICE_DISCONNECTED:
+		mgmt_device_disconnected(size, data);
+		break;
+	case MGMT_EV_CONNECT_FAILED:
+		mgmt_connect_failed(size, data);
+		break;
+	case MGMT_EV_PIN_CODE_REQUEST:
+		mgmt_pin_code_request(size, data);
+		break;
+	case MGMT_EV_USER_CONFIRM_REQUEST:
+		mgmt_user_confirm_request(size, data);
+		break;
+	case MGMT_EV_USER_PASSKEY_REQUEST:
+		mgmt_user_passkey_request(size, data);
+		break;
+	case MGMT_EV_AUTH_FAILED:
+		mgmt_auth_failed(size, data);
+		break;
+	case MGMT_EV_DEVICE_FOUND:
+		mgmt_device_found(size, data);
+		break;
+	case MGMT_EV_DISCOVERING:
+		mgmt_discovering(size, data);
+		break;
+	case MGMT_EV_DEVICE_BLOCKED:
+		mgmt_device_blocked(size, data);
+		break;
+	case MGMT_EV_DEVICE_UNBLOCKED:
+		mgmt_device_unblocked(size, data);
+		break;
+	case MGMT_EV_DEVICE_UNPAIRED:
+		mgmt_device_unpaired(size, data);
+		break;
+	*/
+	default:
+		printf("* Unknown control (code %d len %d)\n", opcode, size);
+		sprintf(name_out,"* Unknown control (code %d len %d)\n", opcode, size);
+		packet_hexdump(data, size);
+		break;
+	}
+	
+}
+
 static gboolean data_callback(GIOChannel *io, GIOCondition cond,
 						gpointer user_data)
 {
@@ -106,6 +191,7 @@ static gboolean data_callback(GIOChannel *io, GIOCondition cond,
 	}
 	return TRUE;
 }
+
 
 static int open_socket(uint16_t channel)
 {

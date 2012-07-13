@@ -143,7 +143,7 @@ gboolean filter_device(struct device_t *d)
 gboolean filter_event(struct event_t *e)
 {
 	struct device_t *d;
-	d = g_hash_table_lookup(connected_devices, e->address_device);
+	d = g_hash_table_lookup(connected_devices, e->device_address);
 	if(filter_device(d))
 		return TRUE;
 	return FALSE;	
@@ -432,7 +432,7 @@ void draw(int op, int arg1, int arg2)
 	for(i = 0; i < events_size; i++){
 		e = get_event(i);
 		if(filter_event(e) && e->has_device){
-			d = get_device( e->address_device);
+			d = get_device( e->device_address);
 
 			if(d == NULL)
 				continue;
@@ -572,11 +572,11 @@ void add_event(struct event_t *e)
 	e->has_device = 1;
 
 	if(events_size % 3)
-		strcpy(e->address_device, TEST_ADDRESS);
+		strcpy(e->device_address, TEST_ADDRESS);
 	else if(events_size % 2)
-		strcpy(e->address_device, TEST_ADDRESS2);
+		strcpy(e->device_address, TEST_ADDRESS2);
 	else
-		strcpy(e->address_device, TEST_ADDRESS3);
+		strcpy(e->device_address, TEST_ADDRESS3);
 
 	/* Add expose event handler, if it don't exist */
 	if(draw_handler_id == 0)

@@ -224,9 +224,6 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 {
 	struct event_t *e;
 
-	printf("{hci%d} op 0x%2.2x\n", index, opcode);
-
-	packet_hexdump(data,size);
 	e = malloc(sizeof(*e));
 	if (!e)
 		return -ENOMEM;
@@ -238,8 +235,11 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
 	packet_hexdump_to_string(data, size, e->data,address);
-
+	
 	e->type = opcode;
+
+	control_message(opcode, data, size, e->name, e->device_address);
+	
 	add_event(e);
 
 	return 0;

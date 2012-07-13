@@ -39,7 +39,7 @@ struct event_t{
   char name[EVENT_NAME_LENGTH];
   int seq_number;
   int has_device;
-  char address_device[ADDRESS_LENGTH];
+  char device_address[ADDRESS_LENGTH];
   int direction;
 };
 

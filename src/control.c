@@ -54,6 +54,18 @@ static void mgmt_index_added(uint16_t len, const void *buf,
 	strcpy(address_out,"");
 }
 
+static void mgmt_index_removed(uint16_t len, const void *buf,
+							char *name_out, char *address_out)
+{
+	printf("@ Index Removed\n");
+
+	packet_hexdump(buf, len);
+	
+	sprintf(name_out, "@ Index Added");	
+	strcpy(address_out,"");
+}
+
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					char *name_out, char *address_out)
 {
@@ -61,10 +73,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_INDEX_ADDED:
 		mgmt_index_added(size, data, name_out, address_out);
 		break;
-/*	case MGMT_EV_INDEX_REMOVED:
-		mgmt_index_removed(size, data);
+	case MGMT_EV_INDEX_REMOVED:
+		mgmt_index_removed(size, data, name_out, address_out);
 		break;
-	case MGMT_EV_CONTROLLER_ERROR:
+/*	case MGMT_EV_CONTROLLER_ERROR:
 		mgmt_controller_error(size, data);
 		break;
 	case MGMT_EV_NEW_SETTINGS:

@@ -559,6 +559,12 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 	struct point p;
 	struct point new_p;
 	int id_event;
+	
+	GHashTableIter iter;
+	char buff[MAX_BUFF];
+	char aux[MAX_BUFF];
+	
+	gpointer key, value;
 	p.x = (int)( (double) mouse_event->x);
 	p.y = (int)( (double) mouse_event->y);
 
@@ -584,9 +590,23 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 		draw(EVENT_SELECTED,event_selected_seq_number,
 				event->seq_number);
 		gtk_widget_queue_draw(darea);
-		gtk_label_set_text(packet_detail, event->data);
-		gtk_widget_show(packet_frame);
+		
+		/* Show packet details */
 
+		if(g_hash_table_size(event->attributes) > 0){
+			g_hash_table_iter_init (&iter, event->attributes);
+			while (g_hash_table_iter_next (&iter, &key, &value))
+			{
+				sprintf(aux,"%s : %s",key,value);
+				strcat(buff, aux);
+			}
+			gtk_label_set_text(packet_detail, buff);
+		}
+		else{
+			gtk_label_set_text(packet_detail, event->data);
+		}
+		
+		gtk_widget_show(packet_frame);
 	}
 
 	return TRUE;

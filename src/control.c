@@ -100,7 +100,7 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 {
 	uint32_t settings;
 	unsigned int i;
-	char *key, *value;
+	char buff[512];
 	
 	if (len < 4) {
 		printf("* Malformed New Settings control\n");
@@ -117,6 +117,11 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 	for (i = 0; i < NELEM(settings_str); i++) {
 		if (settings & (1 << i)){
 			printf("%s ", settings_str[i]);
+			
+			sprintf(buff,"setting %d",i);
+			
+			g_hash_table_insert(e->attributes, make_str(buff), 
+								make_str(settings_str[i]));
 			
 		}
 	}

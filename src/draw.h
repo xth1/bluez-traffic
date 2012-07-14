@@ -59,3 +59,4 @@ struct device_t{
 
 int draw_init(int argc, char **argv, GMainLoop *loop);
 void add_event(struct event_t *e);
+char *make_str(const char c_str[]);

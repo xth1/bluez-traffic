@@ -39,42 +39,43 @@
 
 #include "packet.h"
 #include "control.h"
+#include "draw.h"	
 
 static guint monitor_watch;
 static guint control_watch;
 
 
 static void mgmt_index_added(uint16_t len, const void *buf,
-							char *name_out, char *address_out)
+							struct event_t *e)
 {
 	printf("@ Index Added\n");
 	packet_hexdump(buf, len);
 
-	sprintf(name_out, "@ Index Added");	
-	strcpy(address_out,"");
+	sprintf(e->name, "@ Index Added");	
+	strcpy(e->device_address,"");
 }
 
 static void mgmt_index_removed(uint16_t len, const void *buf,
-							char *name_out, char *address_out)
+							struct event_t *e)
 {
 	printf("@ Index Removed\n");
 
 	packet_hexdump(buf, len);
 	
-	sprintf(name_out, "@ Index Added");	
-	strcpy(address_out,"");
+	sprintf(e->name, "@ Index Added");	
+	strcpy(e->device_address,"");
 }
 
 static void mgmt_controller_error(uint16_t len, const void *buf,	
-								char *name_out, char *address_out)
+								struct event_t *e)
 {	
 	const struct mgmt_ev_controller_error *ev = buf;
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Controller Error control\n");
 		
-		sprintf(name_out, "* Malformed Controller Error control");	
-		strcpy(address_out,"");
+		sprintf(e->name, "* Malformed Controller Error control");	
+		strcpy(e->device_address,"");
 		return;
 	}
 
@@ -85,8 +86,8 @@ static void mgmt_controller_error(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(name_out, "@ Controller Error: 0x%2.2x\n", ev->error_code);	
-	strcpy(address_out,"");
+	sprintf(e->name, "@ Controller Error: 0x%2.2x\n", ev->error_code);	
+	strcpy(e->device_address,"");
 	
 }
 
@@ -95,16 +96,15 @@ static const char *settings_str[] = {
 	"pairable", "link-security", "ssp", "br/edr", "hs", "le"
 };
 
-static void mgmt_new_settings(uint16_t len, const void *buf,
-						char *name_out, char *address_out)
+static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 {
 	uint32_t settings;
 	unsigned int i;
 
 	if (len < 4) {
 		printf("* Malformed New Settings control\n");
-		sprintf(name_out, "* Malformed New Settings control\n");	
-		strcpy(address_out,"");
+		sprintf(e->name, "* Malformed New Settings control\n");	
+		strcpy(e->device_address,"");
 		return;
 	}
 
@@ -124,25 +124,25 @@ static void mgmt_new_settings(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(name_out, "@ New Settings: 0x%4.4x", settings);	
-	strcpy(address_out,"");
+	sprintf(e->name, "@ New Settings: 0x%4.4x", settings);	
+	strcpy(e->device_address,"");
 }
 
 void control_message(uint16_t opcode, const void *data, uint16_t size,
-					char *name_out, char *address_out)
+					struct event_t *e)
 {
 	switch (opcode) {
 	case MGMT_EV_INDEX_ADDED:
-		mgmt_index_added(size, data, name_out, address_out);
+		mgmt_index_added(size, data, e);
 		break;
 	case MGMT_EV_INDEX_REMOVED:
-		mgmt_index_removed(size, data, name_out, address_out);
+		mgmt_index_removed(size, data, e);
 		break;
 	case MGMT_EV_CONTROLLER_ERROR:
-		mgmt_controller_error(size, data, name_out, address_out);
+		mgmt_controller_error(size, data, e);
 		break;
 	case MGMT_EV_NEW_SETTINGS:
-		mgmt_new_settings(size, data, name_out, address_out);
+		mgmt_new_settings(size, data, e);
 		break;
 /*	case MGMT_EV_CLASS_OF_DEV_CHANGED:
 		mgmt_class_of_dev_changed(size, data);
@@ -195,7 +195,8 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	*/
 	default:
 		printf("* Unknown control (code %d len %d)\n", opcode, size);
-		sprintf(name_out,"* Unknown control (code %d len %d)\n", opcode, size);
+		sprintf(e->name,"* Unknown control (code %d len %d)\n", opcode, size);
+		strcpy(e->device_address,"");
 		packet_hexdump(data, size);
 		break;
 	}

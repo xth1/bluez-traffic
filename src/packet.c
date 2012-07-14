@@ -236,7 +236,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	
 	e->type = opcode;
 
-	control_message(opcode, data, size, e->name, e->device_address);
+	control_message(opcode, data, size, e);
 	
 	add_event(e);
 

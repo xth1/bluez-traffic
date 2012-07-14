@@ -102,6 +102,19 @@ static int event_selected_seq_number=-1;
 
 static int draw_handler_id;
 
+
+struct event_t *create_event_object(int data_length)
+{
+	struct event_t *e;
+
+	e = (struct event_t *) malloc(sizeof(struct event_t));
+	
+	e->data = (char *) malloc(data_length * sizeof(char)); 
+	e->attributes = g_hash_table_new(g_str_hash, g_str_equal);
+	
+	return e;
+}
+
 struct event_t *get_event(int p)
 {
 	return g_array_index(events, void *, p);

@@ -178,7 +178,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	char str[18];
 	struct event_t *e;
 
-	e = malloc(sizeof(struct event_t));
+	e = create_event_object(HEXDUMP_LENGTH);
 
 	strcpy(e->name,"");
 	strcpy(e->type_str,"");
@@ -210,7 +210,6 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->socket = HCI_CHANNEL_MONITOR;
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
-	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
 
 	packet_hexdump_to_string(data, size, e->data, address);
 	e->type = opcode;
@@ -224,7 +223,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 {
 	struct event_t *e;
 
-	e = malloc(sizeof(*e));
+	e = create_event_object(HEXDUMP_LENGTH);
 	if (!e)
 		return -ENOMEM;
 
@@ -233,7 +232,6 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	memcpy(&e->tv, tv, sizeof(*tv));
 	e->index = index;
 
-	e->data = (char *) malloc(sizeof(char) * HEXDUMP_LENGTH);
 	packet_hexdump_to_string(data, size, e->data,address);
 	
 	e->type = opcode;

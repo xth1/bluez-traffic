@@ -486,7 +486,6 @@ void destroy_widgets()
 	g_array_free(events, TRUE);
 }
 
-
 gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 								gpointer data)
 {
@@ -594,6 +593,7 @@ void add_event(struct event_t *e)
 	/* Launch darea expose event */
 	gtk_widget_queue_draw(darea);
 }
+
 void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
@@ -622,7 +622,8 @@ void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 	draw(0,0,0);
 	gtk_widget_queue_draw(darea);
 }
-void create_device_filters_dialog ()
+
+void create_device_filters_dialog()
 {
 	GtkWidget *dialog, *label, *content_area;
 	GtkWidget *check;

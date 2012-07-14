@@ -67,7 +67,7 @@ static void mgmt_index_removed(uint16_t len, const void *buf,
 
 static void mgmt_controller_error(uint16_t len, const void *buf,	
 								char *name_out, char *address_out)
-{
+{	
 	const struct mgmt_ev_controller_error *ev = buf;
 
 	if (len < sizeof(*ev)) {
@@ -90,7 +90,43 @@ static void mgmt_controller_error(uint16_t len, const void *buf,
 	
 }
 
+static const char *settings_str[] = {
+	"powered", "connectable", "fast-connectable", "discoverable",
+	"pairable", "link-security", "ssp", "br/edr", "hs", "le"
+};
 
+static void mgmt_new_settings(uint16_t len, const void *buf,
+						char *name_out, char *address_out)
+{
+	uint32_t settings;
+	unsigned int i;
+
+	if (len < 4) {
+		printf("* Malformed New Settings control\n");
+		sprintf(name_out, "* Malformed New Settings control\n");	
+		strcpy(address_out,"");
+		return;
+	}
+
+	settings = bt_get_le32(buf);
+
+	printf("@ New Settings: 0x%4.4x\n", settings);
+
+	printf("%-12c", ' ');
+	for (i = 0; i < NELEM(settings_str); i++) {
+		if (settings & (1 << i))
+			printf("%s ", settings_str[i]);
+	}
+	printf("\n");
+
+	buf += 4;
+	len -= 4;
+
+	packet_hexdump(buf, len);
+	
+	sprintf(name_out, "@ New Settings: 0x%4.4x", settings);	
+	strcpy(address_out,"");
+}
 
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					char *name_out, char *address_out)
@@ -105,10 +141,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_CONTROLLER_ERROR:
 		mgmt_controller_error(size, data, name_out, address_out);
 		break;
-/*	case MGMT_EV_NEW_SETTINGS:
-		mgmt_new_settings(size, data);
+	case MGMT_EV_NEW_SETTINGS:
+		mgmt_new_settings(size, data, name_out, address_out);
 		break;
-	case MGMT_EV_CLASS_OF_DEV_CHANGED:
+/*	case MGMT_EV_CLASS_OF_DEV_CHANGED:
 		mgmt_class_of_dev_changed(size, data);
 		break;
 	case MGMT_EV_LOCAL_NAME_CHANGED:

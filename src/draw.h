@@ -41,6 +41,7 @@ struct event_t{
   int has_device;
   char device_address[ADDRESS_LENGTH];
   int direction;
+  GHashTable *attributes;
 };
 
 struct point{

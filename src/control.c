@@ -100,7 +100,8 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 {
 	uint32_t settings;
 	unsigned int i;
-
+	char *key, *value;
+	
 	if (len < 4) {
 		printf("* Malformed New Settings control\n");
 		sprintf(e->name, "* Malformed New Settings control\n");	
@@ -114,9 +115,12 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 
 	printf("%-12c", ' ');
 	for (i = 0; i < NELEM(settings_str); i++) {
-		if (settings & (1 << i))
+		if (settings & (1 << i)){
 			printf("%s ", settings_str[i]);
+			
+		}
 	}
+	
 	printf("\n");
 
 	buf += 4;

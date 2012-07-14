@@ -102,6 +102,29 @@ static int event_selected_seq_number=-1;
 
 static int draw_handler_id;
 
+/* Util Functions */
+char *make_str(const char c_str[])
+{
+	char *str;
+	int sz = strlen(c_str);
+	
+	str = (char *) malloc(sz * sizeof(char));
+	
+	return str;
+}
+
+/* Event section */
+void event_attributes_key_destroy(gpointer data)
+{
+	if(data != NULL)
+		free(data);
+}
+
+void event_attributes_value_destroy(gpointer data)
+{
+	if(data != NULL)
+		free(data);
+}
 
 struct event_t *create_event_object(int data_length)
 {
@@ -110,7 +133,9 @@ struct event_t *create_event_object(int data_length)
 	e = (struct event_t *) malloc(sizeof(struct event_t));
 	
 	e->data = (char *) malloc(data_length * sizeof(char)); 
-	e->attributes = g_hash_table_new(g_str_hash, g_str_equal);
+	e->attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
+					event_attributes_key_destroy,
+					event_attributes_value_destroy);
 	
 	return e;
 }

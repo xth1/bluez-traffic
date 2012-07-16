@@ -144,6 +144,9 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Class of Device Changed control\n");
+		
+		sprintf(e->name,"* Malformed Class of Device Changed control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -173,6 +176,9 @@ static void mgmt_new_link_key(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Link Key control\n");
+		
+		sprintf(e->name,"* Malformed New Link Key control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -197,6 +203,9 @@ static void mgmt_local_name_changed(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Local Name Changed control\n");
+		
+		sprintf(e->name,"* Malformed Local Name Changed control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -220,6 +229,9 @@ static void mgmt_new_long_term_key(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Long Term Key control\n");
+		
+		sprintf(e->name,"* Malformed New Long Term Key control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -247,6 +259,9 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Connected control\n");
+		
+		sprintf(e->name,"* Malformed Device Connected control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -274,6 +289,9 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Disconnected control\n");
+		
+		sprintf(e->name,"* Malformed Device Disconnected control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -298,6 +316,9 @@ static void mgmt_connect_failed(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Connect Failed control\n");
+		
+		sprintf(e->name,"* Malformed Connect Failed control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -324,6 +345,9 @@ static void mgmt_pin_code_request(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed PIN Code Request control\n");
+		
+		sprintf(e->name,"* Malformed PIN Code Request control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -350,6 +374,9 @@ static void mgmt_user_confirm_request(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed User Confirmation Request control\n");
+		
+		sprintf(e->name,"* Malformed User Confirmation Request control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -376,6 +403,9 @@ static void mgmt_user_passkey_request(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed User Passkey Request control\n");
+		
+		sprintf(e->name,"* Malformed User Passkey Request control\n");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -476,10 +506,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_USER_CONFIRM_REQUEST:
 		mgmt_user_confirm_request(size, data, e);
 		break;
-/*	case MGMT_EV_USER_PASSKEY_REQUEST:
-		mgmt_user_passkey_request(size, data);
+	case MGMT_EV_USER_PASSKEY_REQUEST:
+		mgmt_user_passkey_request(size, data, e);
 		break;
-	case MGMT_EV_AUTH_FAILED:
+/*	case MGMT_EV_AUTH_FAILED:
 		mgmt_auth_failed(size, data);
 		break;
 		*/ 

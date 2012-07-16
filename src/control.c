@@ -164,6 +164,29 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 	strcpy(e->device_address,"");
 }
 
+static void mgmt_local_name_changed(uint16_t len, const void *buf,
+									struct event_t *e)
+{
+	const struct mgmt_ev_local_name_changed *ev = buf;
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Local Name Changed control\n");
+		return;
+	}
+
+	printf("@ Local Name Changed: %s (%s)\n", ev->name, ev->short_name);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+	
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Local Name Changed: %s (%s)\n", 
+					ev->name, ev->short_name);
+	strcpy(e->device_address,"");
+}
+
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -183,10 +206,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_CLASS_OF_DEV_CHANGED:
 		mgmt_class_of_dev_changed(size,data, e);
 		break;
-/*	case MGMT_EV_LOCAL_NAME_CHANGED:
-		mgmt_local_name_changed(size, data);
+	case MGMT_EV_LOCAL_NAME_CHANGED:
+		mgmt_local_name_changed(size, data, e);
 		break;
-	case MGMT_EV_NEW_LINK_KEY:
+/*	case MGMT_EV_NEW_LINK_KEY:
 		mgmt_new_link_key(size, data);
 		break;
 	case MGMT_EV_NEW_LONG_TERM_KEY:

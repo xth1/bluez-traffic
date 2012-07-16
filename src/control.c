@@ -238,6 +238,34 @@ static void mgmt_new_long_term_key(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_device_connected(uint16_t len, const void *buf,
+									struct event_t *e)
+{
+	const struct mgmt_ev_device_connected *ev = buf;
+	uint32_t flags;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Device Connected control\n");
+		return;
+	}
+
+	flags = btohs(ev->flags);
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Device Connected: %s (%d) flags 0x%4.4x\n",
+						str, ev->addr.type, flags);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Device Connected: %s (%d) flags 0x%4.4x\n",
+						str, ev->addr.type, flags);
+	strcpy(e->device_address, str);
+}
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -266,10 +294,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_NEW_LONG_TERM_KEY:
 		mgmt_new_long_term_key(size, data, e);
 		break;
-/*	case MGMT_EV_DEVICE_CONNECTED:
-		mgmt_device_connected(size, data);
+	case MGMT_EV_DEVICE_CONNECTED:
+		mgmt_device_connected(size, data, e);
 		break;
-	case MGMT_EV_DEVICE_DISCONNECTED:
+/*	case MGMT_EV_DEVICE_DISCONNECTED:
 		mgmt_device_disconnected(size, data);
 		break;
 	case MGMT_EV_CONNECT_FAILED:

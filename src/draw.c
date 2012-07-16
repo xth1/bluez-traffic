@@ -738,7 +738,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
 	GtkWidget *filters, *filters_menu, *device_filter;
-	GtkWidget *packet_frame_scroll;
+	GtkWidget *packet_frame_scroll, *packet_frame_details;
 	GtkRequisition size;
 	struct device_t *d;
 
@@ -756,6 +756,7 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	window = gtk_window_new(0);
 	darea = gtk_drawing_area_new();
 	packet_frame = gtk_frame_new("Packet details");
+	packet_frame_details = gtk_frame_new("");
 	packet_detail = gtk_label_new("");
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -838,14 +839,17 @@ int draw_init(int argc,char **argv,GMainLoop *loop)
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(sw),
 								darea);
 	/* Add packet details frame */
+	gtk_frame_set_shadow_type(packet_frame_details, GTK_SHADOW_NONE);   
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(packet_frame_scroll),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_label_set_selectable(packet_detail, TRUE);
-	gtk_container_add(GTK_CONTAINER(packet_frame), packet_detail);
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
-								packet_frame);
-	gtk_box_pack_end(GTK_BOX(vbox), packet_frame_scroll, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(packet_frame_details), packet_detail);
 
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
+								packet_frame_details);
+	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
+	gtk_box_pack_end(GTK_BOX(vbox), packet_frame, TRUE, TRUE, 0);
+	
 	/* Set events handlers */
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

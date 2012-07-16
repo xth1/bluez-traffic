@@ -423,6 +423,39 @@ static void mgmt_user_passkey_request(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_auth_failed(uint16_t len, const void *buf,
+							struct event_t *e)
+{
+	const struct mgmt_ev_auth_failed *ev = buf;
+	char str[18];
+	char buff[255];
+	
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Authentication Failed control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Authentication Failed: %s (%d) status 0x%2.2x\n",
+					str, ev->addr.type, ev->status);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Authentication Failed: %s (%d)\n",
+					str, ev->addr.type);
+	strcpy(e->device_address, str);
+
+	//add attributes	
+	sprintf(buff, "%d", ev->status);
+	g_hash_table_insert(e->attributes, make_str("status"), 
+								make_str(buff));
+
+}
+
 static void mgmt_device_found(uint16_t len, const void *buf,
 							struct event_t *e)
 {
@@ -430,8 +463,6 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	uint32_t flags;
 	char str[18];
 	char buff[255];
-	
-	char *aux;
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Found control\n");
@@ -451,7 +482,7 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	
 	sprintf(e->name,"@ Device Found: %s (%d)\n",
 					str, ev->addr.type, ev->rssi, flags);
-	
+	strcpy(e->device_address, str);
 	//add attributes
 	sprintf(buff, "%d", ev->rssi);
 	g_hash_table_insert(e->attributes, make_str("rssi"), 
@@ -461,7 +492,6 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	g_hash_table_insert(e->attributes, make_str("flags"), 
 								make_str(buff));
 	
-	strcpy(e->device_address, str);
 }
 
 
@@ -511,10 +541,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_USER_PASSKEY_REQUEST:
 		mgmt_user_passkey_request(size, data, e);
 		break;
-/*	case MGMT_EV_AUTH_FAILED:
-		mgmt_auth_failed(size, data);
+	case MGMT_EV_AUTH_FAILED:
+		mgmt_auth_failed(size, data, e);
 		break;
-		*/ 
+		 
 	case MGMT_EV_DEVICE_FOUND:
 		mgmt_device_found(size, data, e);
 		break;

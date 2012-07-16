@@ -598,12 +598,12 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 		strcpy(buff, "");
 		if(g_hash_table_size(event->attributes) > 0){
 			g_hash_table_iter_init (&iter, event->attributes);
+			strcpy(buff, "Attributes\n\n");
 			while (g_hash_table_iter_next (&iter, &key, &value))
 			{
-				sprintf(aux,"%s : %s",(char *) key,(char *) value);
+				sprintf(aux,"%s : %s\n",(char *) key,(char *) value);
 				strcat(buff, aux);
 				
-				printf("aux: %s\n", aux);
 			}
 			gtk_label_set_text(packet_detail, buff);
 		}

@@ -290,6 +290,32 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_connect_failed(uint16_t len, const void *buf,
+								struct event_t *e)
+{
+	const struct mgmt_ev_connect_failed *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Connect Failed control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Connect Failed: %s (%d) status 0x%2.2x\n",
+					str, ev->addr.type, ev->status);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Connect Failed: %s (%d) status 0x%2.2x\n",
+					str, ev->addr.type, ev->status);
+	strcpy(e->device_address, str);
+}
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {

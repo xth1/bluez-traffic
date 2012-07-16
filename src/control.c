@@ -368,12 +368,38 @@ static void mgmt_user_confirm_request(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_user_passkey_request(uint16_t len, const void *buf,
+									struct event_t *e)
+{
+	const struct mgmt_ev_user_passkey_request *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed User Passkey Request control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ PIN User Passkey Request: %s (%d)\n", str, ev->addr.type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ PIN User Passkey Request: %s (%d)\n", 
+					str, ev->addr.type);
+	strcpy(e->device_address, str);
+}
+
 static void mgmt_device_found(uint16_t len, const void *buf,
 							struct event_t *e)
 {
 	const struct mgmt_ev_device_found *ev = buf;
 	uint32_t flags;
 	char str[18];
+	char buff[255];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Found control\n");
@@ -393,6 +419,16 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	
 	sprintf(e->name,"@ Device Found: %s (%d) rssi %d flags 0x%4.4x\n",
 					str, ev->addr.type, ev->rssi, flags);
+	
+	//add attributes
+	sprintf(buff, "%d", ev->rssi);
+	g_hash_table_insert(e->attributes, make_str("rssi"), 
+								make_str(buff));
+	
+	sprintf(buff, "%d", flags);
+	g_hash_table_insert(e->attributes, make_str("flags"), 
+								make_str(buff));
+	
 	strcpy(e->device_address, str);
 }
 

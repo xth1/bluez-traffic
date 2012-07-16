@@ -266,6 +266,30 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_device_disconnected(uint16_t len, const void *buf,
+									struct event_t *e)
+{
+	const struct mgmt_ev_device_disconnected *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Device Disconnected control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Device Disconnected: %s (%d)\n", str, ev->addr.type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Device Disconnected: %s (%d)\n", str, ev->addr.type);
+	strcpy(e->device_address, str);
+}
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -297,10 +321,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_DEVICE_CONNECTED:
 		mgmt_device_connected(size, data, e);
 		break;
-/*	case MGMT_EV_DEVICE_DISCONNECTED:
-		mgmt_device_disconnected(size, data);
+	case MGMT_EV_DEVICE_DISCONNECTED:
+		mgmt_device_disconnected(size, data, e);
 		break;
-	case MGMT_EV_CONNECT_FAILED:
+/*	case MGMT_EV_CONNECT_FAILED:
 		mgmt_connect_failed(size, data);
 		break;
 	case MGMT_EV_PIN_CODE_REQUEST:

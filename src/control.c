@@ -263,10 +263,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_NEW_LINK_KEY:
 		mgmt_new_link_key(size, data, e);
 		break;
-/*	case MGMT_EV_NEW_LONG_TERM_KEY:
-		mgmt_new_long_term_key(size, data);
+	case MGMT_EV_NEW_LONG_TERM_KEY:
+		mgmt_new_long_term_key(size, data, e);
 		break;
-	case MGMT_EV_DEVICE_CONNECTED:
+/*	case MGMT_EV_DEVICE_CONNECTED:
 		mgmt_device_connected(size, data);
 		break;
 	case MGMT_EV_DEVICE_DISCONNECTED:

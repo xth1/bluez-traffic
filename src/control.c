@@ -316,6 +316,35 @@ static void mgmt_connect_failed(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_device_found(uint16_t len, const void *buf,
+							struct event_t *e)
+{
+	const struct mgmt_ev_device_found *ev = buf;
+	uint32_t flags;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Device Found control\n");
+		return;
+	}
+
+	flags = btohs(ev->flags);
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Device Found: %s (%d) rssi %d flags 0x%4.4x\n",
+					str, ev->addr.type, ev->rssi, flags);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Device Found: %s (%d) rssi %d flags 0x%4.4x\n",
+					str, ev->addr.type, ev->rssi, flags);
+	strcpy(e->device_address, str);
+}
+
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -350,10 +379,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_DEVICE_DISCONNECTED:
 		mgmt_device_disconnected(size, data, e);
 		break;
-/*	case MGMT_EV_CONNECT_FAILED:
-		mgmt_connect_failed(size, data);
+	case MGMT_EV_CONNECT_FAILED:
+		mgmt_connect_failed(size, data, e);
 		break;
-	case MGMT_EV_PIN_CODE_REQUEST:
+/*	case MGMT_EV_PIN_CODE_REQUEST:
 		mgmt_pin_code_request(size, data);
 		break;
 	case MGMT_EV_USER_CONFIRM_REQUEST:
@@ -365,10 +394,11 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_AUTH_FAILED:
 		mgmt_auth_failed(size, data);
 		break;
+		*/ 
 	case MGMT_EV_DEVICE_FOUND:
-		mgmt_device_found(size, data);
+		mgmt_device_found(size, data, e);
 		break;
-	case MGMT_EV_DISCOVERING:
+/*	case MGMT_EV_DISCOVERING:
 		mgmt_discovering(size, data);
 		break;
 	case MGMT_EV_DEVICE_BLOCKED:

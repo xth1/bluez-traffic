@@ -544,6 +544,32 @@ static void mgmt_device_blocked(uint16_t len, const void *buf,
 	strcpy(e->device_address, str);
 }
 
+static void mgmt_device_unblocked(uint16_t len, const void *buf,
+								struct event_t *e)
+{
+	const struct mgmt_ev_device_unblocked *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Device Unblocked control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Device Unblocked: %s (%d)\n", str, ev->addr.type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	//Set
+	sprintf(e->type_str,"@ Device Unblocked");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
+	strcpy(e->device_address, str);
+}
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -600,13 +626,13 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_DISCOVERING:
 		mgmt_discovering(size, data, e);
 		break;
-/*	case MGMT_EV_DEVICE_BLOCKED:
-		mgmt_device_blocked(size, data);
+	case MGMT_EV_DEVICE_BLOCKED:
+		mgmt_device_blocked(size, data, e);
 		break;
 	case MGMT_EV_DEVICE_UNBLOCKED:
-		mgmt_device_unblocked(size, data);
+		mgmt_device_unblocked(size, data, e);
 		break;
-	case MGMT_EV_DEVICE_UNPAIRED:
+/*	case MGMT_EV_DEVICE_UNPAIRED:
 		mgmt_device_unpaired(size, data);
 		break;
 	*/

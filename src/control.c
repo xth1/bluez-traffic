@@ -341,6 +341,33 @@ static void mgmt_pin_code_request(uint16_t len, const void *buf,
 					str, ev->addr.type, ev->secure);
 	strcpy(e->device_address, str);
 }
+
+static void mgmt_user_confirm_request(uint16_t len, const void *buf,
+										struct event_t *e)
+{
+	const struct mgmt_ev_user_confirm_request *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed User Confirmation Request control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ User Confirmation Request: %s (%d) hint %d value %d\n",
+			str, ev->addr.type, ev->confirm_hint, ev->value);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ User Confirmation Request: %s (%d) hint %d value %d\n",
+			str, ev->addr.type, ev->confirm_hint, ev->value);
+	strcpy(e->device_address, str);
+}
+
 static void mgmt_device_found(uint16_t len, const void *buf,
 							struct event_t *e)
 {
@@ -410,10 +437,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_PIN_CODE_REQUEST:
 		mgmt_pin_code_request(size, data, e);
 		break;
-/*	case MGMT_EV_USER_CONFIRM_REQUEST:
-		mgmt_user_confirm_request(size, data);
+	case MGMT_EV_USER_CONFIRM_REQUEST:
+		mgmt_user_confirm_request(size, data, e);
 		break;
-	case MGMT_EV_USER_PASSKEY_REQUEST:
+/*	case MGMT_EV_USER_PASSKEY_REQUEST:
 		mgmt_user_passkey_request(size, data);
 		break;
 	case MGMT_EV_AUTH_FAILED:

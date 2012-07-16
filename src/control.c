@@ -480,9 +480,11 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Device Found: %s (%d)\n",
-					str, ev->addr.type, ev->rssi, flags);
+	//Set	
+	sprintf(e->type_str,"@ Device Found");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+	
 	//add attributes
 	sprintf(buff, "%d", ev->rssi);
 	g_hash_table_insert(e->attributes, make_str("rssi"), 
@@ -494,6 +496,53 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	
 }
 
+static void mgmt_discovering(uint16_t len, const void *buf,
+							struct event_t *e)
+{
+	const struct mgmt_ev_discovering *ev = buf;
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Discovering control\n");
+		return;
+	}
+
+	printf("@ Discovering: 0x%2.2x (%d)\n", ev->discovering, ev->type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->type_str,"@ Discovering");	
+	sprintf(e->name,"Info: %s (%d)", ev->discovering, ev->type);
+	strcpy(e->device_address, "");
+}
+
+static void mgmt_device_blocked(uint16_t len, const void *buf,
+								struct event_t *e)
+{
+	const struct mgmt_ev_device_blocked *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Device Blocked control\n");
+		return;
+	}
+
+	ba2str(&ev->addr.bdaddr, str);
+
+	printf("@ Device Blocked: %s (%d)\n", str, ev->addr.type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	//Set
+	sprintf(e->type_str,"@ Device Blocked");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
+	strcpy(e->device_address, str);
+}
 
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
@@ -548,10 +597,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_DEVICE_FOUND:
 		mgmt_device_found(size, data, e);
 		break;
-/*	case MGMT_EV_DISCOVERING:
-		mgmt_discovering(size, data);
+	case MGMT_EV_DISCOVERING:
+		mgmt_discovering(size, data, e);
 		break;
-	case MGMT_EV_DEVICE_BLOCKED:
+/*	case MGMT_EV_DEVICE_BLOCKED:
 		mgmt_device_blocked(size, data);
 		break;
 	case MGMT_EV_DEVICE_UNBLOCKED:

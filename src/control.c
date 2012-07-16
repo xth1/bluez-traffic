@@ -164,6 +164,32 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 	strcpy(e->device_address,"");
 }
 
+
+static void mgmt_new_link_key(uint16_t len, const void *buf,
+								struct event_t *e)
+{
+	const struct mgmt_ev_new_link_key *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed New Link Key control\n");
+		return;
+	}
+
+	ba2str(&ev->key.addr.bdaddr, str);
+
+	printf("@ New Link Key: %s (%d)\n", str, ev->key.addr.type);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ New Link Key: %s (%d)\n", str, ev->key.addr.type);
+	strcpy(e->device_address, str);
+}
+
+
 static void mgmt_local_name_changed(uint16_t len, const void *buf,
 									struct event_t *e)
 {
@@ -186,6 +212,31 @@ static void mgmt_local_name_changed(uint16_t len, const void *buf,
 	strcpy(e->device_address,"");
 }
 
+static void mgmt_new_long_term_key(uint16_t len, const void *buf,
+									struct event_t *e)
+{
+	const struct mgmt_ev_new_long_term_key *ev = buf;
+	char str[18];
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed New Long Term Key control\n");
+		return;
+	}
+
+	ba2str(&ev->key.addr.bdaddr, str);
+
+	printf("@ New Long Term Key: %s (%d)\n", str, ev->key.addr.type);
+	
+	
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ New Long Term Key: %s (%d)\n", 
+				str, ev->key.addr.type);
+	strcpy(e->device_address, str);
+}
 
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
@@ -209,10 +260,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_LOCAL_NAME_CHANGED:
 		mgmt_local_name_changed(size, data, e);
 		break;
-/*	case MGMT_EV_NEW_LINK_KEY:
-		mgmt_new_link_key(size, data);
+	case MGMT_EV_NEW_LINK_KEY:
+		mgmt_new_link_key(size, data, e);
 		break;
-	case MGMT_EV_NEW_LONG_TERM_KEY:
+/*	case MGMT_EV_NEW_LONG_TERM_KEY:
 		mgmt_new_long_term_key(size, data);
 		break;
 	case MGMT_EV_DEVICE_CONNECTED:

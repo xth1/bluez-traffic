@@ -50,8 +50,11 @@ static void mgmt_index_added(uint16_t len, const void *buf,
 {
 	printf("@ Index Added\n");
 	packet_hexdump(buf, len);
+	
+	//Set
+	sprintf(e->type_str,"@ Index Added");	
+	sprintf(e->name, "");
 
-	sprintf(e->name, "@ Index Added");	
 	strcpy(e->device_address,"");
 }
 
@@ -62,7 +65,13 @@ static void mgmt_index_removed(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name, "@ Index Added");	
+	sprintf(e->name, "@ Index Removed");	
+	strcpy(e->device_address,"");
+	
+	//set
+	sprintf(e->type_str,"@ Index Removed");	
+	sprintf(e->name, "");
+
 	strcpy(e->device_address,"");
 }
 
@@ -86,7 +95,10 @@ static void mgmt_controller_error(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name, "@ Controller Error: 0x%2.2x\n", ev->error_code);	
+	//set
+	sprintf(e->type_str,"@ Controller Error");	
+	sprintf(e->name, "Error code: 0x%2.2x\n", ev->error_code);
+
 	strcpy(e->device_address,"");
 	
 }
@@ -133,7 +145,9 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name, "@ New Settings: 0x%4.4x", settings);	
+	//set
+	sprintf(e->type_str,"@ New Settings");	
+
 	strcpy(e->device_address,"");
 }
 
@@ -141,7 +155,8 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 										struct event_t *e)
 {
 	const struct mgmt_ev_class_of_dev_changed *ev = buf;
-
+	char buff[256];
+	
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Class of Device Changed control\n");
 		
@@ -160,12 +175,21 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Class of Device Changed: 0x%2.2x%2.2x%2.2x\n",
-						ev->class_of_dev[2],
+	//Set
+	sprintf(e->type_str,"@ Class of Device Changed");	
+	sprintf(e->name,"Info: 0x%2.2x%2.2x%2.2x", ev->class_of_dev[2],
 						ev->class_of_dev[1],
 						ev->class_of_dev[0]);
 	strcpy(e->device_address,"");
+	
+	//add attributes
+	sprintf(buff, "0x%2.2x%2.2x%2.2x", ev->class_of_dev[2],
+						ev->class_of_dev[1],
+						ev->class_of_dev[0]);
+	g_hash_table_insert(e->attributes, make_str("Info:"), 
+								make_str(buff));
 }
+
 
 
 static void mgmt_new_link_key(uint16_t len, const void *buf,
@@ -173,6 +197,7 @@ static void mgmt_new_link_key(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_new_link_key *ev = buf;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Link Key control\n");
@@ -191,14 +216,18 @@ static void mgmt_new_link_key(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ New Link Key: %s (%d)\n", str, ev->key.addr.type);
+	//Set
+	sprintf(e->type_str,"@ New Link Key");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->key.addr.type);
 	strcpy(e->device_address, str);
+	
 }
 
 
 static void mgmt_local_name_changed(uint16_t len, const void *buf,
 									struct event_t *e)
 {
+	char buff[256];
 	const struct mgmt_ev_local_name_changed *ev = buf;
 
 	if (len < sizeof(*ev)) {
@@ -216,9 +245,15 @@ static void mgmt_local_name_changed(uint16_t len, const void *buf,
 	
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Local Name Changed: %s (%s)\n", 
-					ev->name, ev->short_name);
+	//Set
+	sprintf(e->type_str,"@ Local Name Changed");	
+	sprintf(e->name,"%s to %s", ev->name, ev->short_name);
 	strcpy(e->device_address,"");
+	
+	//add attributes
+	sprintf(buff, "%s to %s", ev->name, ev->short_name);
+	g_hash_table_insert(e->attributes, make_str("Name change"), 
+								make_str(buff));
 }
 
 static void mgmt_new_long_term_key(uint16_t len, const void *buf,
@@ -226,6 +261,7 @@ static void mgmt_new_long_term_key(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_new_long_term_key *ev = buf;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Long Term Key control\n");
@@ -245,8 +281,9 @@ static void mgmt_new_long_term_key(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ New Long Term Key: %s (%d)\n", 
-				str, ev->key.addr.type);
+	//Set
+	sprintf(e->type_str,"@ New Long Term Key");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->key.addr.type);
 	strcpy(e->device_address, str);
 }
 
@@ -256,6 +293,7 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 	const struct mgmt_ev_device_connected *ev = buf;
 	uint32_t flags;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Connected control\n");
@@ -276,9 +314,15 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Device Connected: %s (%d) flags 0x%4.4x\n",
-						str, ev->addr.type, flags);
+	//Set
+	sprintf(e->type_str,"@ Device Connected");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+	
+	//add attributes
+	sprintf(buff, "0x%4.4x", flags);
+	g_hash_table_insert(e->attributes, make_str("flags"), 
+								make_str(buff));
 }
 
 static void mgmt_device_disconnected(uint16_t len, const void *buf,
@@ -286,6 +330,7 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_device_disconnected *ev = buf;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Disconnected control\n");
@@ -304,8 +349,11 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Device Disconnected: %s (%d)\n", str, ev->addr.type);
+	//Set
+	sprintf(e->type_str,"@ Device Disconnected");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+
 }
 
 static void mgmt_connect_failed(uint16_t len, const void *buf,
@@ -313,7 +361,7 @@ static void mgmt_connect_failed(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_connect_failed *ev = buf;
 	char str[18];
-
+	char buff[256];
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Connect Failed control\n");
 		
@@ -335,6 +383,16 @@ static void mgmt_connect_failed(uint16_t len, const void *buf,
 	sprintf(e->name,"@ Connect Failed: %s (%d) status 0x%2.2x\n",
 					str, ev->addr.type, ev->status);
 	strcpy(e->device_address, str);
+	
+	//Set
+	sprintf(e->type_str,"@ Connect Failed");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
+	strcpy(e->device_address, str);
+	
+	//add attributes
+	sprintf(buff, "0x%2.2x", ev->status);
+	g_hash_table_insert(e->attributes, make_str("status"), 
+								make_str(buff));
 }
 
 static void mgmt_pin_code_request(uint16_t len, const void *buf,
@@ -342,6 +400,7 @@ static void mgmt_pin_code_request(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_pin_code_request *ev = buf;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed PIN Code Request control\n");
@@ -361,9 +420,16 @@ static void mgmt_pin_code_request(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ PIN Code Request: %s (%d) secure 0x%2.2x\n",
-					str, ev->addr.type, ev->secure);
+	//Set
+	sprintf(e->type_str,"@ PIN Code Request");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+	
+	//add attributes
+	sprintf(buff, "0x%2.2x", ev->secure);
+	g_hash_table_insert(e->attributes, make_str("secure"), 
+								make_str(buff));
+	
 }
 
 static void mgmt_user_confirm_request(uint16_t len, const void *buf,
@@ -371,6 +437,7 @@ static void mgmt_user_confirm_request(uint16_t len, const void *buf,
 {
 	const struct mgmt_ev_user_confirm_request *ev = buf;
 	char str[18];
+	char buff[256];
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed User Confirmation Request control\n");
@@ -390,9 +457,19 @@ static void mgmt_user_confirm_request(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ User Confirmation Request: %s (%d) hint %d value %d\n",
-			str, ev->addr.type, ev->confirm_hint, ev->value);
+	//Set
+	sprintf(e->type_str,"@ User Confirmation Request");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+	
+	//add attributes
+	sprintf(buff, "%d", ev->confirm_hint);
+	g_hash_table_insert(e->attributes, make_str("hint"), 
+								make_str(buff));
+	sprintf(buff, "%d", ev->value);
+	g_hash_table_insert(e->attributes, make_str("value"), 
+								make_str(buff));
+	
 }
 
 static void mgmt_user_passkey_request(uint16_t len, const void *buf,
@@ -418,8 +495,9 @@ static void mgmt_user_passkey_request(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ PIN User Passkey Request: %s (%d)\n", 
-					str, ev->addr.type);
+	//Set
+	sprintf(e->type_str,"@ PIN User Passkey Request");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
 }
 
@@ -445,8 +523,9 @@ static void mgmt_auth_failed(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Authentication Failed: %s (%d)\n",
-					str, ev->addr.type);
+	//Set
+	sprintf(e->type_str,"@ Authentication Failed");	
+	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
 
 	//add attributes	
@@ -512,7 +591,7 @@ static void mgmt_discovering(uint16_t len, const void *buf,
 	len -= sizeof(*ev);
 
 	packet_hexdump(buf, len);
-	
+	//Set
 	sprintf(e->type_str,"@ Discovering");	
 	sprintf(e->name,"Info: %s (%d)", ev->discovering, ev->type);
 	strcpy(e->device_address, "");

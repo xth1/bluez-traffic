@@ -430,6 +430,8 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 	uint32_t flags;
 	char str[18];
 	char buff[255];
+	
+	char *aux;
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Found control\n");
@@ -447,7 +449,7 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	
-	sprintf(e->name,"@ Device Found: %s (%d) rssi %d flags 0x%4.4x\n",
+	sprintf(e->name,"@ Device Found: %s (%d)\n",
 					str, ev->addr.type, ev->rssi, flags);
 	
 	//add attributes

@@ -108,7 +108,9 @@ char *make_str(const char c_str[])
 	char *str;
 	int sz = strlen(c_str);
 	
-	str = (char *) malloc(sz * sizeof(char));
+	str = (char *) malloc((sz + 1) * sizeof(char));
+	
+	strcpy(str, c_str);
 	
 	return str;
 }
@@ -452,7 +454,7 @@ void draw(int op, int arg1, int arg2)
 
 	/* Draw devices timelines */
 	g_hash_table_iter_init (&iter, connected_devices);
-
+	
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
@@ -592,13 +594,16 @@ gboolean on_drawing_clicked(GtkWidget *widget, GdkEventButton *mouse_event,
 		gtk_widget_queue_draw(darea);
 		
 		/* Show packet details */
-
+		
+		strcpy(buff, "");
 		if(g_hash_table_size(event->attributes) > 0){
 			g_hash_table_iter_init (&iter, event->attributes);
 			while (g_hash_table_iter_next (&iter, &key, &value))
 			{
-				sprintf(aux,"%s : %s",key,value);
+				sprintf(aux,"%s : %s",(char *) key,(char *) value);
 				strcat(buff, aux);
+				
+				printf("aux: %s\n", aux);
 			}
 			gtk_label_set_text(packet_detail, buff);
 		}

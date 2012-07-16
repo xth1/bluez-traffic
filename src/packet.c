@@ -123,6 +123,8 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 	char aux[80];
 	uint16_t i,j;
 	int has_address = 0;
+	
+	strcpy(out, "");
 
 	if (!len)
 		return;

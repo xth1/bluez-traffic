@@ -137,6 +137,33 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 	strcpy(e->device_address,"");
 }
 
+static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
+										struct event_t *e)
+{
+	const struct mgmt_ev_class_of_dev_changed *ev = buf;
+
+	if (len < sizeof(*ev)) {
+		printf("* Malformed Class of Device Changed control\n");
+		return;
+	}
+
+	printf("@ Class of Device Changed: 0x%2.2x%2.2x%2.2x\n",
+						ev->class_of_dev[2],
+						ev->class_of_dev[1],
+						ev->class_of_dev[0]);
+
+	buf += sizeof(*ev);
+	len -= sizeof(*ev);
+
+	packet_hexdump(buf, len);
+	
+	sprintf(e->name,"@ Class of Device Changed: 0x%2.2x%2.2x%2.2x\n",
+						ev->class_of_dev[2],
+						ev->class_of_dev[1],
+						ev->class_of_dev[0]);
+	strcpy(e->device_address,"");
+}
+
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
@@ -153,10 +180,10 @@ void control_message(uint16_t opcode, const void *data, uint16_t size,
 	case MGMT_EV_NEW_SETTINGS:
 		mgmt_new_settings(size, data, e);
 		break;
-/*	case MGMT_EV_CLASS_OF_DEV_CHANGED:
-		mgmt_class_of_dev_changed(size, data);
+	case MGMT_EV_CLASS_OF_DEV_CHANGED:
+		mgmt_class_of_dev_changed(size,data, e);
 		break;
-	case MGMT_EV_LOCAL_NAME_CHANGED:
+/*	case MGMT_EV_LOCAL_NAME_CHANGED:
 		mgmt_local_name_changed(size, data);
 		break;
 	case MGMT_EV_NEW_LINK_KEY:

@@ -22,8 +22,9 @@ In order to compile Bluetooth utilities you need following software packages:
 	- GCC compiler
 	- D-Bus library
 	- GLib library
-	- GTK+ libary
-	- Cairo libary
+	- GTK+ library
+	- Cairo library
+	- CrCanvas library
 
 To genenerate configure script:
 	./bootstrap

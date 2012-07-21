@@ -2,8 +2,7 @@
  *
  *  BlueZ - Bluetooth protocol stack for Linux
  *
- *  Copyright (C) 2011-2012  Intel Corporation
- *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2012  Thiago da Silva Arruda <thiago.xth1@gmail.com>
  *
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,41 +20,41 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <stdio.h>
-#include <sys/epoll.h>
-
+ 
+#include <gtk/gtk.h>
+#include <sys/time.h>
 #include <glib.h>
+#define ADDRESS_LENGTH 20
+#define NAME_LENGTH 32
+#define EVENT_NAME_LENGTH 128
+#define EVENT_TYPE_LENGTH 32
 
-#include "control.h"
-#include "draw.h"
-#include "diagram.h"
+#define DIR_RIGHT 1
+#define DIR_LEFT -1
 
-#define MAX_EVENTS_STORAGE 200
+typedef void (*events_update_callback) 
+	(GArray *events, int size, GHashTable *devices);
 
-int main(int argc, char **argv)
-{
-	GMainLoop *loop;
+struct event_t{
+	int socket;
+	struct timeval tv;
+	int adapter_index;
+	int type;
+	char *data;
+	char type_str[EVENT_TYPE_LENGTH];
+	char name[EVENT_NAME_LENGTH];
+	int seq_number;
+	int has_device;
+	char device_address[ADDRESS_LENGTH];
+	int direction;
+	GHashTable *attributes;
+};
 
-	loop = g_main_loop_new(NULL, FALSE);
-	if(!loop) {
-		fprintf(stderr, "Failed to create mainloop\n");
-		return -1;
-	}
-
-	if (control_tracing() < 0)
-		return -1;
-	
-	events_init(NULL, MAX_EVENTS_STORAGE);
-	
-	UI_init(argc, argv, loop);
-
-	printf("bluez-traffic %s\n", VERSION);
-
-	g_main_loop_run(loop);
-	
-	return 0;
-}
+struct device_t{
+	char address[ADDRESS_LENGTH];
+	char name[NAME_LENGTH];
+	int id_initial_event;
+	int id_least_event;
+	int x_position;
+	gboolean is_active;
+};

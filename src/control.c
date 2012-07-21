@@ -39,7 +39,8 @@
 
 #include "packet.h"
 #include "control.h"
-#include "draw.h"	
+#include "event.h"
+#include "util.h"	
 
 static guint monitor_watch;
 static guint control_watch;
@@ -83,8 +84,9 @@ static void mgmt_controller_error(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Controller Error control\n");
 		
-		sprintf(e->name, "* Malformed Controller Error control");	
-		strcpy(e->device_address,"");
+		sprintf(e->type_str,"* Malformed Controller Error control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -116,8 +118,10 @@ static void mgmt_new_settings(uint16_t len, const void *buf, struct event_t *e)
 	
 	if (len < 4) {
 		printf("* Malformed New Settings control\n");
-		sprintf(e->name, "* Malformed New Settings control\n");	
-		strcpy(e->device_address,"");
+		
+		sprintf(e->type_str,"* Malformed New Settings control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -160,7 +164,8 @@ static void mgmt_class_of_dev_changed(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Class of Device Changed control\n");
 		
-		sprintf(e->name,"* Malformed Class of Device Changed control\n");
+		sprintf(e->type_str,"* Malformed Class of Device Changed control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -202,7 +207,8 @@ static void mgmt_new_link_key(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Link Key control\n");
 		
-		sprintf(e->name,"* Malformed New Link Key control\n");
+		sprintf(e->type_str,"* Malformed New Link Key control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -233,7 +239,8 @@ static void mgmt_local_name_changed(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Local Name Changed control\n");
 		
-		sprintf(e->name,"* Malformed Local Name Changed control\n");
+		sprintf(e->type_str,"* Malformed Local Name Changed control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -266,7 +273,8 @@ static void mgmt_new_long_term_key(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed New Long Term Key control\n");
 		
-		sprintf(e->name,"* Malformed New Long Term Key control\n");
+		sprintf(e->type_str,"* Malformed New Long Term Key control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -298,7 +306,8 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Connected control\n");
 		
-		sprintf(e->name,"* Malformed Device Connected control\n");
+		sprintf(e->type_str,"* Malformed Device Connected control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -335,7 +344,8 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Disconnected control\n");
 		
-		sprintf(e->name,"* Malformed Device Disconnected control\n");
+		sprintf(e->type_str,"* Malformed Device Disconnected control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -365,7 +375,8 @@ static void mgmt_connect_failed(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Connect Failed control\n");
 		
-		sprintf(e->name,"* Malformed Connect Failed control\n");
+		sprintf(e->type_str,"* Malformed Connect Failed control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -405,7 +416,8 @@ static void mgmt_pin_code_request(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed PIN Code Request control\n");
 		
-		sprintf(e->name,"* Malformed PIN Code Request control\n");
+		sprintf(e->type_str,"* Malformed PIN Code Request control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -442,7 +454,8 @@ static void mgmt_user_confirm_request(uint16_t len, const void *buf,
 	if (len < sizeof(*ev)) {
 		printf("* Malformed User Confirmation Request control\n");
 		
-		sprintf(e->name,"* Malformed User Confirmation Request control\n");
+		sprintf(e->type_str,"* Malformed User Confirmation Request control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -480,8 +493,9 @@ static void mgmt_user_passkey_request(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed User Passkey Request control\n");
-		
-		sprintf(e->name,"* Malformed User Passkey Request control\n");
+
+		sprintf(e->type_str,"* Malformed User Passkey Request control");	
+		sprintf(e->name,"");
 		strcpy(e->device_address, "");
 		return;
 	}
@@ -510,6 +524,10 @@ static void mgmt_auth_failed(uint16_t len, const void *buf,
 	
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Authentication Failed control\n");
+		
+		sprintf(e->type_str,"* Malformed Authentication Failed control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -545,6 +563,10 @@ static void mgmt_device_found(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Found control\n");
+		
+		sprintf(e->type_str,"* Malformed Device Found control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -582,6 +604,10 @@ static void mgmt_discovering(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Discovering control\n");
+		
+		sprintf(e->type_str,"* Malformed Discovering control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -605,6 +631,10 @@ static void mgmt_device_blocked(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Blocked control\n");
+		
+		sprintf(e->type_str,"* Malformed Device Blocked control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -631,6 +661,10 @@ static void mgmt_device_unblocked(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Unblocked control\n");
+		
+		sprintf(e->type_str,"* Malformed Device Unblocked control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 
@@ -657,6 +691,10 @@ static void mgmt_device_unpaired(uint16_t len, const void *buf,
 
 	if (len < sizeof(*ev)) {
 		printf("* Malformed Device Unpaired control\n");
+		
+		sprintf(e->type_str,"* Malformed Device Unpaired control");	
+		sprintf(e->name,"");
+		strcpy(e->device_address, "");
 		return;
 	}
 

@@ -243,15 +243,6 @@ void draw_event(cairo_t *cr, struct event_t *e, struct point p,int op)
 	cairo_set_dash(cr, NULL, 0, 0);
 
 	/* Draw rectangle */
-	cairo_move_to(cr, p.x, p.y);
-	p.x += SPACE;
-	p.y += SPACE;
-
-	if(op & EVENT_SELECTED)
-		cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
-	else
-		cairo_set_source_rgb(cr, 1, 1, 1);
-
 	cairo_set_line_width(cr, 0);
 
 	cairo_rectangle(cr, p.x, p.y, p.x + DAREA_W, p.y + R_H);
@@ -682,7 +673,7 @@ void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 	devices_check = NULL;
 	/* Redraw */
 	
-	draw(0,0,0);
+	draw(0, 0, 0);
 	gtk_widget_queue_draw(darea);
 }
 

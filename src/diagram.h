@@ -2,8 +2,7 @@
  *
  *  BlueZ - Bluetooth protocol stack for Linux
  *
- *  Copyright (C) 2011-2012  Intel Corporation
- *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2012  Thiago da Silva Arruda <thiago.xth1@gmail.com>
  *
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,41 +20,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <stdio.h>
-#include <sys/epoll.h>
-
-#include <glib.h>
-
-#include "control.h"
-#include "draw.h"
-#include "diagram.h"
-
-#define MAX_EVENTS_STORAGE 200
-
-int main(int argc, char **argv)
-{
-	GMainLoop *loop;
-
-	loop = g_main_loop_new(NULL, FALSE);
-	if(!loop) {
-		fprintf(stderr, "Failed to create mainloop\n");
-		return -1;
-	}
-
-	if (control_tracing() < 0)
-		return -1;
-	
-	events_init(NULL, MAX_EVENTS_STORAGE);
-	
-	UI_init(argc, argv, loop);
-
-	printf("bluez-traffic %s\n", VERSION);
-
-	g_main_loop_run(loop);
-	
-	return 0;
-}
+ 
+int canvas_init(int argc, char **argv);
+gboolean update_events(GArray *events, int size, GHashTable *devices);

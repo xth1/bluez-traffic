@@ -42,7 +42,9 @@
 #include <bluetooth/mgmt.h>
 
 #include "packet.h"
-#include "draw.h"
+#include "event.h"
+#include "util.h"
+#include "UI.h"
 
 #define MONITOR_NEW_INDEX	0
 #define MONITOR_DEL_INDEX	1
@@ -211,7 +213,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 	/*generate event*/
 	e->socket = HCI_CHANNEL_MONITOR;
 	memcpy(&e->tv, tv, sizeof(*tv));
-	e->index = index;
+	e->adapter_index = index;
 
 	packet_hexdump_to_string(data, size, e->data, address);
 	e->type = opcode;
@@ -232,7 +234,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	/* Generate event */
 	e->socket = HCI_CHANNEL_CONTROL;
 	memcpy(&e->tv, tv, sizeof(*tv));
-	e->index = index;
+	e->adapter_index = index;
 
 	packet_hexdump_to_string(data, size, e->data,address);
 	

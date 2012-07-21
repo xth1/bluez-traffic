@@ -21,41 +21,9 @@
  *
  */
 
-#include <gtk/gtk.h>
-#include <sys/time.h>
-#include <glib.h>
-#define ADDRESS_LENGTH 20
-#define NAME_LENGTH 32
-#define EVENT_NAME_LENGTH 128
-#define EVENT_TYPE_LENGTH 32
-
-
-struct event_t{
-  int socket;
-  struct timeval tv;
-  int index;
-  int type;
-  char *data;
-  char type_str[EVENT_TYPE_LENGTH];
-  char name[EVENT_NAME_LENGTH];
-  int seq_number;
-  int has_device;
-  char device_address[ADDRESS_LENGTH];
-  int direction;
-  GHashTable *attributes;
-};
 
 struct point{
     int x,y;
-};
-
-struct device_t{
-	char address[ADDRESS_LENGTH];
-	char name[NAME_LENGTH];
-	int id_initial_event;
-	int id_least_event;
-	int x_position;
-	gboolean is_active;
 };
 
 int draw_init(int argc, char **argv, GMainLoop *loop);

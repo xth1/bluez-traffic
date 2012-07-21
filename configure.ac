@@ -47,6 +47,9 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.0, dummy=yes,
 PKG_CHECK_MODULES(BLUEZ, bluez >= 4.99, dummy=yes,
 				AC_MSG_ERROR(bluez >= 4.99 is required))
 
+PKG_CHECK_MODULES(CRCANVAS, crcanvas >= 0.19, dummy=yes,
+				AC_MSG_ERROR(crcanvas >= 0.19 is required))
+
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 

@@ -48,9 +48,9 @@ int main(int argc, char **argv)
 
 	if (control_tracing() < 0)
 		return -1;
-	
+
 	events_init(NULL, MAX_EVENTS_STORAGE);
-	
+
 	UI_init(argc, argv, loop);
 
 	printf("bluez-traffic %s\n", VERSION);

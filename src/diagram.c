@@ -45,7 +45,6 @@
 #include "event.h"
 #include "util.h"
 
-
 #define EVENT_BOX_W 375
 #define EVENT_BOX_H 30
 
@@ -90,11 +89,6 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
       
 	switch (event->type) {
 	case GDK_BUTTON_PRESS:
-		color = g_random_int_range(0,255) << 24 |
-		g_random_int_range(0,255) << 16 |
-		g_random_int_range(0,255) << 8 |
-		0xff;					
-		
 		if (event->button.button == 1) {
 			
 			if(item != last_item){
@@ -108,7 +102,6 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 			last_item = item;
 			init_x = event->button.x;
 			init_y = event->button.y;
-			
 			
 			return TRUE;
 		}
@@ -146,9 +139,8 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 	return FALSE;
 }
 
-static gboolean
-on_device_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix, 
-                CrItem *pick_item, char * user_data)
+static gboolean on_device_clicked(CrItem *item, GdkEvent *event, 
+			cairo_matrix_t *matrix, CrItem *pick_item, char * user_data)
 {
 	printf("Device clicked\n");
 	
@@ -336,7 +328,6 @@ void make_device_timeline(CrItem *group, struct device_t *d,
 	printf("make timeline\n");
 	
 	/* Print device name */
-	
 	device_name_text = cr_text_new(group, p.x, p.y, d->name,
                         "font", "Courier Medium 8",
                         "anchor", GTK_ANCHOR_NW,

@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+#include <gtk/gtk.h>
  
-int canvas_init(int argc, char **argv);
+GtkWidget *create_diagram(int param,int width,int height);
 gboolean update_events(GArray *events, int size, GHashTable *devices);

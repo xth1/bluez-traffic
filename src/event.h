@@ -58,3 +58,6 @@ struct device_t{
 	int x_position;
 	gboolean is_active;
 };
+
+void events_init(events_update_callback callback, int ev_lim);
+void add_event(struct event_t *e);

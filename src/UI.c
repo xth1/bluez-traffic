@@ -135,7 +135,6 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	/* Init diagram */
 	diagram = create_diagram(0, 640, 400);	
 	
-	
 	/* Set window attributes */
 	gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
 
@@ -160,11 +159,8 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 
 	/* Add scrollable diagram */
-
-	gtk_box_pack_start(GTK_BOX(vbox),
-	 sw, TRUE, TRUE, 0);
-	gtk_container_add(GTK_CONTAINER(sw),
-								diagram);
+	gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(sw), diagram);
 						
 	/* Set events handlers */
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);

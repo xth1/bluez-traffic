@@ -54,7 +54,7 @@ struct event_t{
 	char device_address[ADDRESS_LENGTH];
 	int direction;
 	/*Device connection/disconnection happened in this event */
-	gboolean device_connection;
+	gboolean is_device_connection;
 	/* Set by filter */
 	gboolean is_active;
 };

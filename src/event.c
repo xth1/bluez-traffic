@@ -162,10 +162,10 @@ void add_event(struct event_t *e)
 	/* Add test connection seq */
 	
 	if(rand() %10 == 1){
-		e->device_connection = TRUE;
+		e->is_device_connection = TRUE;
 	}	
 	else{
-		e->device_connection = FALSE;
+		e->is_device_connection = FALSE;
 	}
 	
 	if(update_callback)

@@ -20,7 +20,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- #include <math.h>
+ 
+#include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
 #include <cr-canvas.h>
@@ -90,7 +91,6 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 void make_all_comunication_links(CrItem *group,GHashTable *events_diagram, 
 					GHashTable *devices_diagram, int event_box_width)
 {
-	
 	gpointer key, value;
 	GHashTableIter iter;
 	
@@ -146,13 +146,13 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 	CrItem *upper_line;
 	guint color;
 	
-	printf("Add connection link \n");
+/*	printf("Add connection link \n");
 	
 	printf("[%d %d]\n",p1.x, p1.y);	
 	printf("[%d %d]\n",p2.x, p2.y);
 	printf("[%d %d]\n",p3.x, p3.y);
 	printf("[%d %d]\n",p4.x, p4.y);
-	
+*/	
 	/* Draw connection link 1 */
 	if(has_end_point){
 		link1 = cr_vector_new(group, p1.x , p1.y, 
@@ -184,8 +184,7 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 	
 	/* Draw circles */
 	add_circle(group, p3);
-	add_circle(group, p4);
-	printf("End Add connection link\n");	
+	add_circle(group, p4);	
 	
 }
 
@@ -228,8 +227,6 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 		dd = g_hash_table_lookup(devices_diagram, e->device_address);
 		
 		if(e->is_device_connection){ 
-			
-			printf("Device Connection\n");
 			/* draw connection link */
 
 			pointer = g_hash_table_lookup(device_connection, 

@@ -48,7 +48,6 @@ struct event_t{
 	int seq_number;
 	
 	GHashTable *attributes;
-	
 	/* Device attibutes */
 	int has_device;
 	char device_address[ADDRESS_LENGTH];

@@ -64,12 +64,8 @@ static GArray *events_list = NULL;
 static int events_size = -1;
 static GHashTable *devices_hash = NULL;
 
-
 static GHashTable *devices_diagram = NULL;
 static GHashTable *events_diagram = NULL;
-
-
-//void make_all_links(CrItem *group,
 
 static void do_remove(CrItem *child, CrItem *parent)
 {
@@ -126,16 +122,8 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	devices_diagram = make_all_devices_timeline(root, devices_hash, p, line_size);
 	
 	/* Draw all links */
-	printf("draw links");
 	/* Half of EVENT_BOX_W because CrCanvas positioning system (better it)*/
 	make_all_links(root, events_diagram, devices_diagram, EVENT_BOX_W / 2);
-	
-	/* Test iteration */
-	g_hash_table_iter_init (&iter, devices_diagram);
-	while (g_hash_table_iter_next (&iter, &key, &value)){
-		dd = (struct event_diagram *) value;
-		printf("%s : %d %d\n", (dd->device)->address,(dd->position).x,(dd->position).y);		
-	}
 
 	return TRUE;
 }

@@ -80,19 +80,13 @@ void make_device_timeline(CrItem *group, struct device_t *d,
 	
 	/* store device diagram */
 	dd = g_new(struct device_diagram, 1);
-	
 	dd->position = p;
 	dd->device = d;
-	
 	g_hash_table_insert(devices_diagram, d->address, dd);
 	
 	/* draw device timeline */
-	
 	p2 = p;
-	
 	p2.y += line_size;
-	
-	printf("make timeline\n");
 	
 	/* Print device name */
 	device_name_text = cr_text_new(group, p.x, p.y, d->name,
@@ -126,7 +120,7 @@ GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *devices_hash,
 
 	devices_diagram = g_hash_table_new_full(g_str_hash, g_str_equal,
 					devices_diagram_key_destroy, devices_diagram_value_destroy);
-	printf("Device Init\n");
+
 	g_hash_table_iter_init (&iter, devices_hash);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
@@ -134,7 +128,6 @@ GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *devices_hash,
 		make_device_timeline(group, d, p, line_size);
 
 		p.x += 6 * SPACE;
-
 	}
 	
 	return devices_diagram;

@@ -52,7 +52,6 @@
 #define GAP_SIZE 8
 #define SPACE 10
 
-
 static CrItem *selected_event = NULL;
 
 static GHashTable *events_diagram = NULL;
@@ -68,7 +67,6 @@ void events_diagram_value_destroy(gpointer data)
 	if(data != NULL)
 		free(data);
 }
-
 
 static gboolean
 on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix, 
@@ -202,7 +200,6 @@ static void make_event(CrItem *group,struct event_t *e,
                         "fill_color_rgba", 0x000000ffL, NULL);
 
 	/* Print adapter index */
-
 	if (e->socket == HCI_CHANNEL_MONITOR)
 		sprintf(buff, "[ hci%d ]", e->adapter_index);
 	else
@@ -237,7 +234,6 @@ static void make_event(CrItem *group,struct event_t *e,
                         "fill_color_rgba", 0x3333eeffL, NULL);
                         
     /* Print name */
-
 	sprintf(buff, "%s", e->name);
 
 	pp.x = 10 * SPACE;

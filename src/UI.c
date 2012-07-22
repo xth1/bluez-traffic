@@ -155,6 +155,11 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 	
+	/* Add scrollable diagram */
+	//gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	gtk_paned_pack1(GTK_PANED(v_paned), sw, FALSE, FALSE);
+	gtk_container_add(GTK_CONTAINER(sw), diagram);
+	
 	/* Add packet details frame */
 	gtk_frame_set_shadow_type(packet_frame_details, GTK_SHADOW_NONE);   
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(packet_frame_scroll),
@@ -166,12 +171,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 								packet_frame_details);
 	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
 	//gtk_box_pack_end(GTK_BOX(vbox), packet_frame, TRUE, TRUE, 0);
-	gtk_paned_pack1(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
-	
-	/* Add scrollable diagram */
-	//gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
-	gtk_paned_pack2(GTK_PANED(v_paned), sw, FALSE, FALSE);
-	gtk_container_add(GTK_CONTAINER(sw), diagram);
+	gtk_paned_pack2(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
 	
 	/* Add box */
 	gtk_box_pack_start(GTK_BOX(vbox), v_paned, TRUE, TRUE, 0);

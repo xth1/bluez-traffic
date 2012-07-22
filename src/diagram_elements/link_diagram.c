@@ -70,7 +70,7 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 	
 	unsigned long long int color;
 	
-	if(dir == DIR_LEFT)
+	if(dir == OUTPUT)
 		color = LINK_RIGHT_COLOR;
 	else
 		color = LINK_LEFT_COLOR;
@@ -131,7 +131,7 @@ void make_all_comunication_links(CrItem *group,GHashTable *events_diagram,
 			p_dev.x = dd->position.x;
 			p_dev.y = ed->position.y;
 			
-			if(e->direction == DIR_RIGHT)
+			if(e->direction == OUTPUT)
 					add_comunication_link(group, p_ev, p_dev, e->direction);
 			else
 					add_comunication_link(group, p_dev, p_ev, e->direction);
@@ -296,6 +296,15 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 	
 	g_hash_table_key_destroy(device_connection);
 }
+
+/*
+void add_sequence_link(CrItem *group, struct point p1, struct point p2)
+{
+	CrItem *link1, *link2;
+	CrItem *upper_line;
+	guint color;
+}
+*/
 
 void make_all_links(CrItem *group,GHashTable *events_diagram, 
 				GHashTable *devices_diagram, int event_box_width)

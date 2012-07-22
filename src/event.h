@@ -31,8 +31,11 @@
 #define EVENT_NAME_LENGTH 128
 #define EVENT_TYPE_LENGTH 32
 
-#define DIR_RIGHT 1
-#define DIR_LEFT -1
+enum
+{
+        INPUT = 1,
+        OUTPUT,
+};  
 
 typedef void (*events_update_callback) 
 	(GArray *events, int size, GHashTable *devices);
@@ -47,12 +50,15 @@ struct event_t{
 	char name[EVENT_NAME_LENGTH];
 	int seq_number;
 	
+	/* Sequence number of previus event */
+	int previus_event;
+
 	GHashTable *attributes;
 	/* Device attibutes */
 	int has_device;
 	char device_address[ADDRESS_LENGTH];
 	int direction;
-	/*Device connection/disconnection happened in this event */
+	/* Device connection/disconnection happened in this event */
 	gboolean is_device_connection;
 	/* Set by filter */
 	gboolean is_active;

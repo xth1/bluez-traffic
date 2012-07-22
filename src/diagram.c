@@ -104,7 +104,7 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	/* Get root item */
 	g_object_get(diagram, "root", &root);
 
-	/* Clear */
+	/* Clear diagram */
 	on_clear(root);
 
 	/* Draw all events */

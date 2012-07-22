@@ -20,10 +20,18 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#define UTIL_HEADER 1
+ 
+#ifndef EVENT_HEADER
 
-struct point{
-    int x,y;
-};
+#include "../event.h"
 
-char *make_str(const char c_str[]);
+#endif
+
+#ifndef UTIL_HEADER
+
+#include "../util.h"
+
+#endif
+
+void make_all_links(CrItem *group,GHashTable *events_diagram, 
+					GHashTable *devices_diagram, int event_box_width);

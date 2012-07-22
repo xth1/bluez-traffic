@@ -20,10 +20,12 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+#define EVENT_HEADER 1
+
 #include <gtk/gtk.h>
 #include <sys/time.h>
 #include <glib.h>
+
 #define ADDRESS_LENGTH 20
 #define NAME_LENGTH 32
 #define EVENT_NAME_LENGTH 128
@@ -44,10 +46,17 @@ struct event_t{
 	char type_str[EVENT_TYPE_LENGTH];
 	char name[EVENT_NAME_LENGTH];
 	int seq_number;
+	
+	GHashTable *attributes;
+	
+	/* Device attibutes */
 	int has_device;
 	char device_address[ADDRESS_LENGTH];
 	int direction;
-	GHashTable *attributes;
+	/*Device connection/disconnection happened in this event */
+	gboolean device_connection;
+	/* Set by filter */
+	gboolean is_active;
 };
 
 struct device_t{
@@ -55,7 +64,7 @@ struct device_t{
 	char name[NAME_LENGTH];
 	int id_initial_event;
 	int id_least_event;
-	int x_position;
+	/* Set by filter */
 	gboolean is_active;
 };
 

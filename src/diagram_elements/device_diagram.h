@@ -20,10 +20,26 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#define UTIL_HEADER 1
+ 
+#ifndef EVENT_HEADER
 
-struct point{
-    int x,y;
+#include "../event.h"
+
+#endif
+
+#ifndef UTIL_HEADER
+
+#include "../util.h"
+
+#endif
+
+struct device_diagram{
+	struct device_t *device;
+	struct point position;
+	
+	/* flags for drawing */
+	gboolean is_timeline_oppen;
 };
 
-char *make_str(const char c_str[]);
+GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *events, 
+								struct point p, int line_size);

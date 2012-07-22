@@ -20,10 +20,9 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#define UTIL_HEADER 1
+ 
+/* Active devices */
+static GHashTable *active_devices;
 
-struct point{
-    int x,y;
-};
 
-char *make_str(const char c_str[]);
+

@@ -23,4 +23,4 @@
 #include <gtk/gtk.h>
  
 GtkWidget *create_diagram(int param,int width,int height);
-gboolean update_events(GArray *events, int size, GHashTable *devices);
+gboolean diagram_update(GArray *events, int size, GHashTable *devices);

@@ -20,10 +20,18 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#define UTIL_HEADER 1
+#ifndef EVENT_HEADER
 
-struct point{
-    int x,y;
+#include "../event.h"
+
+#endif
+
+#include <glib.h>
+
+struct event_diagram{ 
+	struct event_t *event;
+	struct point position;
 };
 
-char *make_str(const char c_str[]);
+GHashTable *make_all_events(CrItem *group,GArray *events, int size,
+						struct point p, int w, int h);

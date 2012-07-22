@@ -32,6 +32,8 @@
 
 /* Storage limit of events */
 static events_limit = INF;
+
+static int event_count = 0;
  
 /* Array of events */
 static GArray *events;
@@ -131,6 +133,8 @@ struct event_t *create_event_object(int data_length)
 
 void add_event(struct event_t *e)
 {
+	e->seq_number = event_count++;
+	
 	if( events_size == events_limit){
 		g_array_remove_index(events, events_size -1);
 		g_array_prepend_val(events, e);
@@ -154,6 +158,15 @@ void add_event(struct event_t *e)
 		e->direction = -1;
 	else
 		e->direction = 1;
+		
+	/* Add test connection seq */
+	
+	if(rand() %10 == 1){
+		e->device_connection = TRUE;
+	}	
+	else{
+		e->device_connection = FALSE;
+	}
 	
 	if(update_callback)
 		update_callback(events, events_size, connected_devices);
@@ -166,6 +179,7 @@ struct event_t *get_event(int p)
 
 void add_device(struct device_t *device)
 {
+
 	g_hash_table_insert(connected_devices, device->address, device);
 }
 

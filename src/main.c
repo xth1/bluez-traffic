@@ -31,8 +31,8 @@
 #include <glib.h>
 
 #include "control.h"
-#include "draw.h"
 #include "diagram.h"
+#include "event.h"
 
 #define MAX_EVENTS_STORAGE 200
 

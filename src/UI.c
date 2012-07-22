@@ -110,6 +110,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
 	GtkWidget *filters, *filters_menu, *device_filter;
 	GtkWidget *packet_frame_scroll, *packet_frame_details;
+	GtkWidget *v_paned;
 	GtkRequisition size;
 	struct device_t *d;
 
@@ -124,6 +125,8 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	packet_detail = gtk_label_new("");
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
+	
+	v_paned = gtk_vpaned_new();
 
 	/* Init diagram */
 	diagram = create_diagram(0, 640, 400, 
@@ -162,12 +165,17 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
 								packet_frame_details);
 	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
-	gtk_box_pack_end(GTK_BOX(vbox), packet_frame, TRUE, TRUE, 0);
-
+	//gtk_box_pack_end(GTK_BOX(vbox), packet_frame, TRUE, TRUE, 0);
+	gtk_paned_pack1(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
+	
 	/* Add scrollable diagram */
-	gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	//gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
+	gtk_paned_pack2(GTK_PANED(v_paned), sw, FALSE, FALSE);
 	gtk_container_add(GTK_CONTAINER(sw), diagram);
-
+	
+	/* Add box */
+	gtk_box_pack_start(GTK_BOX(vbox), v_paned, TRUE, TRUE, 0);
+	
 	/* Set events handlers */
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

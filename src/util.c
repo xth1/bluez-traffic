@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+ #include <glib.h>
 
 char *make_str(const char c_str[])
 {
@@ -31,4 +32,16 @@ char *make_str(const char c_str[])
 	strcpy(str, c_str);
 
 	return str;
+}
+
+
+gboolean has_key(GHashTable *table, gpointer key)
+{
+	gpointer pointer;
+	
+	pointer = g_hash_table_lookup(table, key);
+	
+	if(pointer != NULL)
+		return TRUE;
+	return FALSE;
 }

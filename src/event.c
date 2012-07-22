@@ -22,6 +22,8 @@
  
 #include "event.h"
 
+#include "filter.h"
+
 #include <stdlib.h>
 #include <time.h>
 /* For tests only */
@@ -57,9 +59,90 @@ void g_hash_table_value_destroy(gpointer data)
 		free(data);
 }
 
+void add_test_fields(struct event_t *e)
+{
+	
+	/* For test only */
+	e->has_device = 1;
+
+	if(rand() % 3)
+		strcpy(e->device_address, TEST_ADDRESS);
+	else if(rand() % 2)
+		strcpy(e->device_address, TEST_ADDRESS2);
+	else
+		strcpy(e->device_address, TEST_ADDRESS3);
+	
+	if(events_size % 2)
+		e->direction = EVENT_INPUT;
+	else
+		e->direction = EVENT_OUTPUT;
+	
+	/* Add test connection seq */
+	if(rand() %10 == 1){
+		e->is_device_connection = TRUE;
+	}	
+	else{
+		e->is_device_connection = FALSE;
+	}
+	
+}
+
+void update_events(struct data_dumped_t *data)
+{
+	if(update_callback)
+		update_callback(data->events, data->events_size, data->devices);
+}
+
+void add_event(struct event_t *e)
+{
+	struct data_dumped_t *data_in, *data_out;
+	
+	e->seq_number = event_count++;
+	
+	if( events_size == events_limit){
+		g_array_remove_index(events, events_size -1);
+		g_array_prepend_val(events, e);
+	}
+	else{
+		g_array_prepend_val(events, e);
+		events_size++;
+	}
+	
+	add_test_fields(e);
+	
+	/* Filter */
+	data_in = g_new(struct data_dumped_t, 1);
+	
+	data_in->events = events;
+	data_in->events_size = events_size;
+	data_in->devices = connected_devices;
+	data_out = filter(data_in);
+	
+	update_events(data_out);
+}
+
+struct event_t *get_event(int p)
+{
+	return g_array_index(events, void *, p);
+}
+
+void add_device(struct device_t *device)
+{
+
+	g_hash_table_insert(connected_devices, device->address, device);
+}
+
+struct device_t *get_device(char *address)
+{
+	struct device_t *d;
+	gboolean has_key;
+	d = (struct device_t *) g_hash_table_lookup(connected_devices, address);
+
+	return d;
+}
+
 void events_init(events_update_callback callback, int ev_lim)
 {
-		srand(time(0));
 	struct device_t *d;
 	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
 	connected_devices = g_hash_table_new_full(g_str_hash,g_str_equal,
@@ -70,6 +153,8 @@ void events_init(events_update_callback callback, int ev_lim)
 	
 	update_callback = callback;
 
+	filter_init();
+	
 	/* Devices for test */
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS);
@@ -97,6 +182,9 @@ void events_init(events_update_callback callback, int ev_lim)
 	d->id_least_event = -1;
 
 	add_device(d);
+	
+	/* for tests only */
+	srand(time(0));
 }
 
 void set_events_update_callback(events_update_callback callback)
@@ -128,64 +216,4 @@ struct event_t *create_event_object(int data_length)
 					event_attributes_value_destroy);
 	
 	return e;
-}
-
-void add_event(struct event_t *e)
-{
-	e->seq_number = event_count++;
-	
-	if( events_size == events_limit){
-		g_array_remove_index(events, events_size -1);
-		g_array_prepend_val(events, e);
-	}
-	else{
-		g_array_prepend_val(events, e);
-		events_size++;
-	}
-	
-	/* For test only */
-	e->has_device = 1;
-
-	if(rand() % 3)
-		strcpy(e->device_address, TEST_ADDRESS);
-	else if(rand() % 2)
-		strcpy(e->device_address, TEST_ADDRESS2);
-	else
-		strcpy(e->device_address, TEST_ADDRESS3);
-	
-	if(events_size % 2)
-		e->direction = EVENT_INPUT;
-	else
-		e->direction = EVENT_OUTPUT;
-	
-	/* Add test connection seq */
-	if(rand() %10 == 1){
-		e->is_device_connection = TRUE;
-	}	
-	else{
-		e->is_device_connection = FALSE;
-	}
-
-	if(update_callback)
-		update_callback(events, events_size, connected_devices);
-}
-
-struct event_t *get_event(int p)
-{
-	return g_array_index(events, void *, p);
-}
-
-void add_device(struct device_t *device)
-{
-
-	g_hash_table_insert(connected_devices, device->address, device);
-}
-
-struct device_t *get_device(char *address)
-{
-	struct device_t *d;
-	gboolean has_key;
-	d = (struct device_t *) g_hash_table_lookup(connected_devices, address);
-
-	return d;
 }

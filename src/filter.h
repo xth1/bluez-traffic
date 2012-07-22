@@ -20,9 +20,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+ #ifndef EVENT_HEADER
+ #include "event.h"
+ #endif
  
-/* Active devices */
-static GHashTable *active_devices;
-
-
-
+struct data_dumped_t *filter(struct data_dumped_t *data_in);

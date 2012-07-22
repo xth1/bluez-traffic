@@ -22,8 +22,12 @@
  */
 #define UTIL_HEADER 1
 
+#include <glib.h>
+
 struct point{
     int x,y;
 };
 
 char *make_str(const char c_str[]);
+
+gboolean has_key(GHashTable *table, gpointer key);

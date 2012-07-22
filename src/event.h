@@ -73,5 +73,11 @@ struct device_t{
 	gboolean is_active;
 };
 
+struct data_dumped_t{
+	GHashTable *devices;
+	GArray *events;
+	int events_size;
+};
+
 void events_init(events_update_callback callback, int ev_lim);
 void add_event(struct event_t *e);

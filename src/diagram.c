@@ -67,7 +67,7 @@ static GHashTable *devices_hash = NULL;
 static GHashTable *devices_diagram = NULL;
 static GHashTable *events_diagram = NULL;
 
-/* callback function for event */
+/* Callback function for event */
 static event_diagram_callback event_callback;
 
 static void do_remove(CrItem *child, CrItem *parent)

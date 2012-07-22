@@ -283,5 +283,6 @@ GHashTable *make_all_events(CrItem *group, GArray *events,
 		p.y += h;
 	}
 	
+	printf("End make_all_events\n");
 	return events_diagram;
 }

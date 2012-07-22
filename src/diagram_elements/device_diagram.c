@@ -121,14 +121,19 @@ GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *devices_hash,
 	devices_diagram = g_hash_table_new_full(g_str_hash, g_str_equal,
 					devices_diagram_key_destroy, devices_diagram_value_destroy);
 
+	printf("Devices hash %p\n", devices_hash);
 	g_hash_table_iter_init (&iter, devices_hash);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
+		
+		printf("make device : %s\n", d->address);
 		make_device_timeline(group, d, p, line_size);
 
 		p.x += 6 * SPACE;
 	}
+
+	printf("End make_all_devices_timeline\n");
 
 	return devices_diagram;
 }

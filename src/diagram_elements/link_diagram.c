@@ -217,6 +217,7 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 	g_hash_table_iter_init (&iter, events_diagram);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
+		printf("Iterate\n");
 		ed = (struct event_diagram *) value;
 		
 		e = ed->event;
@@ -295,6 +296,8 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 	}
 	
 	g_hash_table_key_destroy(device_connection);
+	
+	printf("END make_all_connection_links\n ");
 }
 
 /*

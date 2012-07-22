@@ -21,6 +21,16 @@
  *
  */
 #include <gtk/gtk.h>
- 
-GtkWidget *create_diagram(int param,int width,int height);
+
+#ifndef EVENT_HEADER
+#include "event.h"
+#endif
+
+#ifndef EVENT_DIAGRAM_HEADER
+#include "diagram_elements/event_diagram.h"
+#endif
+
+GtkWidget *create_diagram(int param, int width, int height, 
+							event_diagram_callback ev_callback);
+
 gboolean diagram_update(GArray *events, int size, GHashTable *devices);

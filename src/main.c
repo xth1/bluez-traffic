@@ -32,7 +32,10 @@
 
 #include "control.h"
 #include "diagram.h"
+
+#ifndef EVENT_HEADER
 #include "event.h"
+#endif
 
 #define MAX_EVENTS_STORAGE 200
 

@@ -67,6 +67,9 @@ static GHashTable *devices_hash = NULL;
 static GHashTable *devices_diagram = NULL;
 static GHashTable *events_diagram = NULL;
 
+/* callback function for event */
+static event_diagram_callback event_callback;
+
 static void do_remove(CrItem *child, CrItem *parent)
 {
         cr_item_remove(parent, child);
@@ -107,32 +110,36 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	/* Clear diagram */
 	on_clear(root);
 
-	/* Draw all events */
+	/* Make all events */
 	p.x = EVENT_BOX_LEFT_MARGIN;
 	p.y = EVENT_BOX_TOP_MARGIN;
-	events_diagram = make_all_events(root, events, size, p, 
-					EVENT_BOX_W, EVENT_BOX_H);
+	events_diagram = make_all_events(root, events, event_callback, size,
+									p, EVENT_BOX_W, EVENT_BOX_H);
 
-	/* Draw all devices timeline */
+	/* Make all devices timeline */
 	line_size = events_size * EVENT_BOX_H + EVENT_BOX_TOP_MARGIN;
 
 	p.x = EVENT_BOX_W / 2 + 6 * SPACE;
 	p.y = 0;
 
-	devices_diagram = make_all_devices_timeline(root, devices_hash, p, line_size);
+	devices_diagram = make_all_devices_timeline(root, devices_hash, p,
+												line_size);
 
-	/* Draw all links */
+	/* Make all links */
 	/* Half of EVENT_BOX_W because CrCanvas positioning system */
 	make_all_links(root, events_diagram, devices_diagram, EVENT_BOX_W / 2);
 
 	return TRUE;
 }
 
-GtkWidget *create_diagram(int param, int width, int height)
+GtkWidget *create_diagram(int param, int width, int height, 
+							event_diagram_callback ev_callback)
 {
 	CrZoomer *zoomer;
 	CrPanner *panner;
 	CrRotator *rotator;
+	
+	event_callback = ev_callback;
 
 	diagram = cr_canvas_new("maintain_aspect", TRUE,
 				"auto_scale", FALSE,

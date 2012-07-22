@@ -21,6 +21,8 @@
  *
  */
  
+#define EVENT_DIAGRAM_HEADER 1
+ 
 #include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
@@ -56,6 +58,8 @@ static CrItem *selected_event = NULL;
 
 static GHashTable *events_diagram = NULL;
 
+static event_diagram_callback event_callback;
+
 void events_diagram_key_destroy(gpointer data)
 {
 	if(data != NULL)
@@ -70,26 +74,35 @@ void events_diagram_value_destroy(gpointer data)
 
 static gboolean
 on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix, 
-                CrItem *pick_item, char * user_data)
+                CrItem *pick_item, gpointer *user_data)
 {
 	static CrItem *last_item = NULL;
 	static double init_x, init_y;
 	static int last_msec = 0;
 	guint color;
-	char *data;
-     
+	
+	struct event_diagram *ed = (struct event_diagram *)user_data;
+	
+	printf("Event : %d\n", event->type);
 	switch (event->type) {
 	case GDK_BUTTON_PRESS:
 		if (event->button.button == 1) {
 			
 			if(item != last_item){
-				if(selected_event != NULL)
+				if(selected_event != NULL){
 					g_object_set(selected_event, "fill_color_rgba", 
 								EVENT_BG_COLOR, NULL);
+					
+				}
 				g_object_set(item, "fill_color_rgba", 
 							EVENT_SELECTED_BG_COLOR, NULL);
 				selected_event = item;
+				
+				/* Call event callback function */
+				event_callback(ed, EVENT_SELECTED);
+
 			}
+			
 			last_item = item;
 			init_x = event->button.x;
 			init_y = event->button.y;
@@ -129,6 +142,7 @@ static void make_event(CrItem *group,struct event_t *e,
 	CrItem *operation_code_text;
 	CrItem *name_text;
 	guint color;
+	char buff[512];
 	
 	struct point pp;
 	struct point ppn;
@@ -140,11 +154,7 @@ static void make_event(CrItem *group,struct event_t *e,
 	
 	time_t t;
 	struct tm tm;
-	
-	int size;
-	
-	char buff[512];	
-	char *text = "retangle";
+	int size;	
 	
 	/* store event diagram */
 	ed = g_new(struct event_diagram, 1);
@@ -152,7 +162,7 @@ static void make_event(CrItem *group,struct event_t *e,
 	ed->position = p;
 	ed->event = e;
 	
-	key = g_new(int,1);
+	key = g_new(int, 1);
 	*key = e->seq_number;
 	g_hash_table_insert(events_diagram, key, ed);
 	
@@ -186,7 +196,7 @@ static void make_event(CrItem *group,struct event_t *e,
                         "use-markup", TRUE,
                         "fill_color_rgba", 0x000000ffL, NULL);
                         
-	 /* Print time */
+	/* Print time */
 	sprintf(buff, "%02d:%02d:%02d.%06lu ", tm.tm_hour, tm.tm_min,
 					 tm.tm_sec, (e->tv).tv_usec);
 	
@@ -227,7 +237,7 @@ static void make_event(CrItem *group,struct event_t *e,
 	pp.y = TEXT_TOP_MARGIN;
 	ppn = get_pos(pp, dim);
 	
-	operation_code_text =cr_text_new(rectangle, ppn.x, ppn.y, buff,
+	operation_code_text = cr_text_new(rectangle, ppn.x, ppn.y, buff,
                         "font", "Courier Medium 8",
                         "anchor", GTK_ANCHOR_NW,
                         "use-markup", TRUE,
@@ -247,14 +257,17 @@ static void make_event(CrItem *group,struct event_t *e,
 
 	/* Signal event */
 	g_signal_connect(rectangle, "event", 
-					(GCallback) on_event_box_clicked, e);
+					(GCallback) on_event_box_clicked, ed);
 }
 
-GHashTable *make_all_events(CrItem *group,GArray *events, int events_size,
+GHashTable *make_all_events(CrItem *group, GArray *events, 
+						event_diagram_callback callback, int events_size,
 						struct point p, int w, int h)
 {
 	struct event_t *e;
 	int i;
+	
+	event_callback = callback;
 
 	/* Create hash table */	
 	if(events_diagram)

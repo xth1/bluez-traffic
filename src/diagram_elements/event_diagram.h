@@ -26,12 +26,31 @@
 
 #endif
 
+#ifndef UTIL_HEADER
+#include "../util.h"
+#endif
+
 #include <glib.h>
+#include <cr-canvas.h>
 
 struct event_diagram{ 
 	struct event_t *event;
 	struct point position;
 };
 
-GHashTable *make_all_events(CrItem *group,GArray *events, int size,
+/*
+struct event_diagram_data{
+	struct event_t *event;
+};
+*/ 
+
+enum{
+	EVENT_SELECTED = 1,
+	EVENT_UNSELECTED,
+};
+
+typedef void (*event_diagram_callback) (struct event_diagram *des, int action);
+
+GHashTable *make_all_events(CrItem *group, GArray *events, 
+						event_diagram_callback callback, int events_size,
 						struct point p, int w, int h);

@@ -33,8 +33,8 @@
 
 enum
 {
-        INPUT = 1,
-        OUTPUT,
+        EVENT_INPUT,
+        EVENT_OUTPUT
 };  
 
 typedef void (*events_update_callback) 

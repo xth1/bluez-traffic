@@ -154,9 +154,9 @@ void add_event(struct event_t *e)
 		strcpy(e->device_address, TEST_ADDRESS3);
 	
 	if(events_size % 2)
-		e->direction = INPUT;
+		e->direction = EVENT_INPUT;
 	else
-		e->direction = OUTPUT;
+		e->direction = EVENT_OUTPUT;
 	
 	/* Add test connection seq */
 	if(rand() %10 == 1){

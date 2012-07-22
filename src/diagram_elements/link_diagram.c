@@ -70,7 +70,7 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 	
 	unsigned long long int color;
 	
-	if(dir == OUTPUT)
+	if(dir == EVENT_OUTPUT)
 		color = LINK_RIGHT_COLOR;
 	else
 		color = LINK_LEFT_COLOR;
@@ -131,7 +131,7 @@ void make_all_comunication_links(CrItem *group,GHashTable *events_diagram,
 			p_dev.x = dd->position.x;
 			p_dev.y = ed->position.y;
 			
-			if(e->direction == OUTPUT)
+			if(e->direction == EVENT_OUTPUT)
 					add_comunication_link(group, p_ev, p_dev, e->direction);
 			else
 					add_comunication_link(group, p_dev, p_ev, e->direction);

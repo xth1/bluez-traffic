@@ -38,8 +38,8 @@ static int event_count = 0;
 /* Array of events */
 static GArray *events;
 static int events_size;
-/* Callback */
 
+/* Callback */
 events_update_callback update_callback = NULL;
 
 /* Connected devices */
@@ -97,7 +97,6 @@ void events_init(events_update_callback callback, int ev_lim)
 	d->id_least_event = -1;
 
 	add_device(d);
-
 }
 
 void set_events_update_callback(events_update_callback callback)
@@ -158,16 +157,15 @@ void add_event(struct event_t *e)
 		e->direction = -1;
 	else
 		e->direction = 1;
-		
-	/* Add test connection seq */
 	
+	/* Add test connection seq */
 	if(rand() %10 == 1){
 		e->is_device_connection = TRUE;
 	}	
 	else{
 		e->is_device_connection = FALSE;
 	}
-	
+
 	if(update_callback)
 		update_callback(events, events_size, connected_devices);
 }

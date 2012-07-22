@@ -175,12 +175,12 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 	
 	/* Draw line up timeline */
 	upper_line = cr_vector_new(group, p3.x , p3.y, 
-					p4.x - p3.x, p4.y - p3.y,
-					"outline_color_rgba", LINK_CONNECTION_UPPER_COLOR,
-					"end_scaleable", FALSE,
-					"line_scaleable", FALSE,
-					"line_width", 1.5,
-					NULL);
+				p4.x - p3.x, p4.y - p3.y,
+				"outline_color_rgba", LINK_CONNECTION_UPPER_COLOR,
+				"end_scaleable", FALSE,
+				"line_scaleable", FALSE,
+				"line_width", 1.5,
+				NULL);
 	
 	/* Draw circles */
 	add_circle(group, p3);
@@ -229,30 +229,30 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 		if(e->is_device_connection){ 
 			/* draw connection link */
 
-			pointer = g_hash_table_lookup(device_connection, 
-										e->device_address);	
+			pointer = g_hash_table_lookup(device_connection, e->device_address);	
+
 			if(pointer != NULL){
 
 				pp = ( (struct point *)pointer);
-				
+
 				p_ev = *pp;
-				
+
 				p1 = ed->position;
 				p1.x += event_box_width;
-				
+
 				p2 = p_ev;
 				p2.x += event_box_width;
-				
+
 				p3.x = (dd->position).x;
 				p3.y = p1.y;
-				
+
 				p4.x = (dd->position).x;
 				p4.y = p2.y;
 
 				add_connection_link(group, p1, p2, p3, p4, TRUE);
-				
+
 				g_free(pp);
-				
+
 				g_hash_table_remove(device_connection, e->device_address);
 			}
 			else{
@@ -262,7 +262,7 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 			}
 		}
 	}
-	
+
 	/* complete draw connection link */
 	g_hash_table_iter_init (&iter, device_connection);
 	while (g_hash_table_iter_next (&iter, &key, &value))
@@ -272,25 +272,25 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 		
 		address_key = (char *) key;
 		pp = (struct point *) value;
-		
+
 		p_ev = *pp;
-		
+
 		p1.x = 0;
 		p1.y = 0;
-		
+
 		p2 = p_ev;
 		p2.x += event_box_width;
-		
+
 		p3.x = (dd->position).x;
 		p3.y = (dd->position).y;
-		
+
 		p4.x = (dd->position).x;
 		p4.y = p2.y;
-		
+
 		add_connection_link(group, p1, p2, p3, p4, FALSE);
-		
+
 		g_free(pp);
-		
+
 		g_hash_table_remove(device_connection, e->device_address);
 	}
 	
@@ -298,11 +298,11 @@ void make_all_connection_links(CrItem *group,GHashTable *events_diagram,
 }
 
 void make_all_links(CrItem *group,GHashTable *events_diagram, 
-					GHashTable *devices_diagram, int event_box_width)
+				GHashTable *devices_diagram, int event_box_width)
 {
 	make_all_connection_links(group, events_diagram, devices_diagram, 
-								event_box_width);
+				event_box_width);
 
 	make_all_comunication_links(group, events_diagram, devices_diagram, 
-								event_box_width);
+				event_box_width);
 }

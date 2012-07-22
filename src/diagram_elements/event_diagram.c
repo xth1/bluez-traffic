@@ -186,8 +186,8 @@ static void make_event(CrItem *group,struct event_t *e,
                         "use-markup", TRUE,
                         "fill_color_rgba", 0x000000ffL, NULL);
                         
-   /* Print time */
-    sprintf(buff, "%02d:%02d:%02d.%06lu ", tm.tm_hour, tm.tm_min,
+	 /* Print time */
+	sprintf(buff, "%02d:%02d:%02d.%06lu ", tm.tm_hour, tm.tm_min,
 					 tm.tm_sec, (e->tv).tv_usec);
 	
 	pp.x = TEXT_LEFT_MARGIN; 
@@ -233,7 +233,7 @@ static void make_event(CrItem *group,struct event_t *e,
                         "use-markup", TRUE,
                         "fill_color_rgba", 0x3333eeffL, NULL);
                         
-    /* Print name */
+	/* Print name */
 	sprintf(buff, "%s", e->name);
 
 	pp.x = 10 * SPACE;

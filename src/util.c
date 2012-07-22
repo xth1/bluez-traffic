@@ -25,10 +25,10 @@ char *make_str(const char c_str[])
 {
 	char *str;
 	int sz = strlen(c_str);
-	
+
 	str = (char *) malloc((sz + 1) * sizeof(char));
-	
+
 	strcpy(str, c_str);
-	
+
 	return str;
 }

@@ -70,14 +70,14 @@ void make_device_timeline(CrItem *group, struct device_t *d,
 	CrItem *device_name_text;
 	CrItem *timeline;
 	int i;
-	
+
 	struct point p2;
 	struct point p_ev, p_dev;
-	
+
 	struct event_t *e;
-	
+
 	struct device_diagram *dd;
-	
+
 	/* store device diagram */
 	dd = g_new(struct device_diagram, 1);
 	dd->position = p;
@@ -96,9 +96,9 @@ void make_device_timeline(CrItem *group, struct device_t *d,
                         "fill_color_rgba", 0x000000ffL, NULL);
 
 	/* Draw timeline */
-	timeline = cr_vector_new(group, p.x , p.y + SPACE, 0, 
-						p2.y + 3 * SPACE,
-                        "outline_color_rgba", 0xccccccff,
+	timeline = cr_vector_new(group, p.x , p.y + SPACE,
+		       	0, p2.y + 3 * SPACE,
+			"outline_color_rgba", 0xccccccff,
                         "end_scaleable", FALSE,
                         "line_scaleable", FALSE,
                         "line_width", 1.5,
@@ -129,6 +129,6 @@ GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *devices_hash,
 
 		p.x += 6 * SPACE;
 	}
-	
+
 	return devices_diagram;
 }

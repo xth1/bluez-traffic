@@ -21,19 +21,4 @@
  *
  */
 
-#include <gtk/gtk.h>
-
-#ifndef EVENT_HEADER
-#include "event.h"
-#endif
-
-#ifndef EVENT_DIAGRAM_HEADER
-#include "diagram_elements/event_diagram.h"
-#endif
-
-#define DIAGRAM_HEADER 1
-
-GtkWidget *create_diagram(int param, int width, int height, 
-							event_diagram_callback ev_callback);
-
-gboolean diagram_update(GArray *events, int size, GHashTable *devices);
+void create_device_filters_dialog(GtkWidget *window);

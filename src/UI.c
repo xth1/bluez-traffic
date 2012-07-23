@@ -32,7 +32,11 @@
 
 #include "event.h"
 #include "util.h"
+#include "UI_components/device_filter_dialog.h"
+
+#ifndef DIAGRAM_HEADER
 #include "diagram.h"
+#endif
 
 #define WINDOW_H 550
 #define WINDOW_W 800
@@ -49,10 +53,6 @@ static GtkWidget *diagram = NULL;
 static GtkWidget *packet_frame = NULL;
 static GtkWidget *packet_detail = NULL;
 static GMainLoop *mainloop = NULL;
-static GtkWidget *device_filters_dialog = NULL;
-
-/* Devices check-box */
-static GHashTable *devices_check = NULL;
 
 void destroy_widgets()
 {
@@ -105,103 +105,11 @@ gboolean show_event_details(struct event_diagram *ed,
 	}
 }
 
-void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
-				gpointer user_data)
-{
-	
-	GHashTable *connected_devices;
-	GHashTableIter iter;
-	GtkCheckButton *chk;
-	gpointer key, value;
-	struct device_t *d;
-	
-	//devices_check = (GHashTable *)user_data;
-	
-	if(devices_check == NULL)
-		return;
-	
-	connected_devices = ev_get_connected_devices();
-	
-	g_hash_table_iter_init (&iter, devices_check);
-	
-	while (g_hash_table_iter_next (&iter, &key, &value)){
-		chk = (GtkCheckButton *) value;
-		d = (struct device_t *) g_hash_table_lookup(connected_devices, (char *) key);		
-		filter_set_active_device(d, gtk_toggle_button_get_active(chk));
-	}
-	
-	events_update();
-
-	/* Free resourses */
-	gtk_widget_destroy(device_filters_dialog);
-	device_filters_dialog = NULL;
-	
-	g_hash_table_destroy(devices_check);
-	devices_check = NULL;
-}
-
-void create_device_filters_dialog()
-{
-	GtkWidget *dialog, *label, *content_area;
-	GtkWidget *check;
-	
-	GHashTable *connected_devices;
-	
-	char buff[256];
-	gpointer key, value;
-	GHashTableIter iter;
-	struct device_t *d;
-	
-	gboolean is_active;
-   
-	if(devices_check != NULL || device_filters_dialog != NULL)
-		return;
-	
-	devices_check = g_hash_table_new (g_str_hash, g_str_equal);
-	
-	connected_devices = ev_get_connected_devices();
-
-	device_filters_dialog = gtk_dialog_new_with_buttons ("Devices fiters",
-                                         window,
-                                         GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_STOCK_OK,
-                                         GTK_RESPONSE_NONE,
-                                         NULL);
-	content_area = gtk_dialog_get_content_area (GTK_DIALOG (device_filters_dialog));
-	label = gtk_label_new ("Devices");
-	gtk_container_add (GTK_CONTAINER (content_area), label);
-
-   /* Add devices check box */
-	g_hash_table_iter_init (&iter, connected_devices);
-	
-	while (g_hash_table_iter_next (&iter, &key, &value))
-	{
-		d = (struct device_t *) value;
-		sprintf(buff,"%s: %s", d->address, d->name);
-		check =  gtk_check_button_new_with_label(buff);
-		
-		is_active = filter_is_device_active(d);
-		
-		gtk_toggle_button_set_active(check, is_active);
-		g_hash_table_insert(devices_check, d->address, check);
-		gtk_container_add (GTK_CONTAINER (content_area), check);
-	}
-
-   g_signal_connect_swapped (device_filters_dialog,
-                             "response",
-                             G_CALLBACK(on_device_dialog_response),
-                             devices_check);
-   printf("End\n");
-   gtk_widget_show_all (device_filters_dialog);
-}
-
 void on_device_filters_click(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
-	printf("device filter clicked\n");
-	create_device_filters_dialog();
+	create_device_filters_dialog(window);
 }
-
 
 int UI_init(int argc,char **argv,GMainLoop *loop)
 {

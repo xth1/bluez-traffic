@@ -52,7 +52,7 @@ static GMainLoop *mainloop = NULL;
 static GtkWidget *device_filters_dialog = NULL;
 
 /* Devices check-box */
-GHashTable *devices_check = NULL;
+static GHashTable *devices_check = NULL;
 
 void destroy_widgets()
 {
@@ -105,6 +105,104 @@ gboolean show_event_details(struct event_diagram *ed,
 	}
 }
 
+void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
+				gpointer user_data)
+{
+	
+	GHashTable *connected_devices;
+	GHashTableIter iter;
+	GtkCheckButton *chk;
+	gpointer key, value;
+	struct device_t *d;
+	
+	//devices_check = (GHashTable *)user_data;
+	
+	if(devices_check == NULL)
+		return;
+	
+	connected_devices = ev_get_connected_devices();
+	
+	g_hash_table_iter_init (&iter, devices_check);
+	
+	while (g_hash_table_iter_next (&iter, &key, &value)){
+		chk = (GtkCheckButton *) value;
+		d = (struct device_t *) g_hash_table_lookup(connected_devices, (char *) key);		
+		filter_set_active_device(d, gtk_toggle_button_get_active(chk));
+	}
+	
+	events_update();
+
+	/* Free resourses */
+	gtk_widget_destroy(device_filters_dialog);
+	device_filters_dialog = NULL;
+	
+	g_hash_table_destroy(devices_check);
+	devices_check = NULL;
+}
+
+void create_device_filters_dialog()
+{
+	GtkWidget *dialog, *label, *content_area;
+	GtkWidget *check;
+	
+	GHashTable *connected_devices;
+	
+	char buff[256];
+	gpointer key, value;
+	GHashTableIter iter;
+	struct device_t *d;
+	
+	gboolean is_active;
+   
+	if(devices_check != NULL || device_filters_dialog != NULL)
+		return;
+	
+	devices_check = g_hash_table_new (g_str_hash, g_str_equal);
+	
+	connected_devices = ev_get_connected_devices();
+
+	device_filters_dialog = gtk_dialog_new_with_buttons ("Devices fiters",
+                                         window,
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_STOCK_OK,
+                                         GTK_RESPONSE_NONE,
+                                         NULL);
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (device_filters_dialog));
+	label = gtk_label_new ("Devices");
+	gtk_container_add (GTK_CONTAINER (content_area), label);
+
+   /* Add devices check box */
+	g_hash_table_iter_init (&iter, connected_devices);
+	
+	while (g_hash_table_iter_next (&iter, &key, &value))
+	{
+		d = (struct device_t *) value;
+		sprintf(buff,"%s: %s", d->address, d->name);
+		check =  gtk_check_button_new_with_label(buff);
+		
+		is_active = filter_is_device_active(d);
+		
+		gtk_toggle_button_set_active(check, is_active);
+		g_hash_table_insert(devices_check, d->address, check);
+		gtk_container_add (GTK_CONTAINER (content_area), check);
+	}
+
+   g_signal_connect_swapped (device_filters_dialog,
+                             "response",
+                             G_CALLBACK(on_device_dialog_response),
+                             devices_check);
+   printf("End\n");
+   gtk_widget_show_all (device_filters_dialog);
+}
+
+void on_device_filters_click(GtkWidget *widget, GdkEventButton *mouse_event,
+				gpointer user_data)
+{
+	printf("device filter clicked\n");
+	create_device_filters_dialog();
+}
+
+
 int UI_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
@@ -155,8 +253,18 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
 	
+	/* Filters menu */
+	filters_menu = gtk_menu_new();
+	filters = gtk_menu_item_new_with_mnemonic("_Filters");
+	device_filter = gtk_menu_item_new_with_mnemonic("_Devices");
+	g_signal_connect(device_filter, "activate", G_CALLBACK(on_device_filters_click),
+							(gpointer) device_filter);
+
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filters), filters_menu);
+	gtk_menu_shell_append(GTK_MENU_SHELL(filters_menu), device_filter);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), filters);
+	
 	/* Add scrollable diagram */
-	//gtk_box_pack_start(GTK_BOX(vbox), sw, TRUE, TRUE, 0);
 	gtk_paned_pack1(GTK_PANED(v_paned), sw, FALSE, FALSE);
 	gtk_container_add(GTK_CONTAINER(sw), diagram);
 	
@@ -170,7 +278,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
 								packet_frame_details);
 	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
-	//gtk_box_pack_end(GTK_BOX(vbox), packet_frame, TRUE, TRUE, 0);
+
 	gtk_paned_pack2(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
 	
 	/* Add box */

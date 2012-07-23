@@ -87,16 +87,24 @@ void add_test_fields(struct event_t *e)
 	
 }
 
-void update_events(struct data_dumped_t *data)
+void events_update()
 {
+	struct data_dumped_t *data_in, *data_out;
+	/* Filter */
+	data_in = g_new(struct data_dumped_t, 1);
+	
+	data_in->events = events;
+	data_in->events_size = events_size;
+	data_in->devices = connected_devices;
+	data_out = filter(data_in);
+	
 	if(update_callback)
-		update_callback(data->events, data->events_size, data->devices);
+		update_callback(data_out->events, data_out->events_size, 
+						data_out->devices);
 }
 
 void add_event(struct event_t *e)
-{
-	struct data_dumped_t *data_in, *data_out;
-	
+{	
 	e->seq_number = event_count++;
 	
 	if( events_size == events_limit){
@@ -110,15 +118,7 @@ void add_event(struct event_t *e)
 	
 	add_test_fields(e);
 	
-	/* Filter */
-	data_in = g_new(struct data_dumped_t, 1);
-	
-	data_in->events = events;
-	data_in->events_size = events_size;
-	data_in->devices = connected_devices;
-	data_out = filter(data_in);
-	
-	update_events(data_out);
+	events_update();
 }
 
 struct event_t *get_event(int p)
@@ -128,8 +128,14 @@ struct event_t *get_event(int p)
 
 void add_device(struct device_t *device)
 {
-
 	g_hash_table_insert(connected_devices, device->address, device);
+	
+	filter_set_active_device(device, TRUE);
+}
+
+GHashTable *ev_get_connected_devices()
+{
+	return connected_devices;
 }
 
 struct device_t *get_device(char *address)

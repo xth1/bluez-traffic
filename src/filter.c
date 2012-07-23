@@ -62,6 +62,11 @@ void filter_set_active_device(struct device_t *device, gboolean active)
 	}
 }
 
+gboolean filter_is_device_active(struct device_t *device)
+{
+	return has_key(devices_filter, device->address);
+}
+
 void filter_init()
 {
 	if(devices_filter)

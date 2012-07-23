@@ -20,8 +20,12 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+ 
  #ifndef EVENT_HEADER
  #include "event.h"
  #endif
  
 struct data_dumped_t *filter(struct data_dumped_t *data_in);
+
+void filter_set_active_device(struct device_t *device, gboolean active);
+gboolean filter_is_device_active(struct device_t *device);

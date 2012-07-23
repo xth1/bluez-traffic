@@ -20,6 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 #define EVENT_HEADER 1
 
 #include <gtk/gtk.h>
@@ -81,3 +82,5 @@ struct data_dumped_t{
 
 void events_init(events_update_callback callback, int ev_lim);
 void add_event(struct event_t *e);
+void events_update();
+GHashTable *ev_get_connected_devices();

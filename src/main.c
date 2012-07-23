@@ -31,13 +31,18 @@
 #include <glib.h>
 
 #include "control.h"
-#include "diagram.h"
 
-#ifndef EVENT_HEADER
-#include "event.h"
+#ifndef DATA_DUMPED_HEADER
+#include "diagram.h"
 #endif
 
-#define MAX_EVENTS_STORAGE 200
+#include "UI.h"
+
+#ifndef DATA_DUMPED_HEADER
+#include "data_dumped.h"
+#endif
+
+#define MAX_EVENTS_STORAGE 50
 
 int main(int argc, char **argv)
 {
@@ -52,7 +57,7 @@ int main(int argc, char **argv)
 	if (control_tracing() < 0)
 		return -1;
 
-	events_init(NULL, MAX_EVENTS_STORAGE);
+	data_dumped_init(NULL, MAX_EVENTS_STORAGE);
 
 	UI_init(argc, argv, loop);
 

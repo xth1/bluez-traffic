@@ -42,8 +42,8 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#ifndef EVENT_HEADER
-#include "event.h"
+#ifndef DATA_DUMPED_HEADER
+#include "data_dumped.h"
 #endif
 
 #include "util.h"
@@ -114,7 +114,7 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	p.x = EVENT_BOX_LEFT_MARGIN;
 	p.y = EVENT_BOX_TOP_MARGIN;
 	events_diagram = make_all_events(root, events, event_callback, size,
-									p, EVENT_BOX_W, EVENT_BOX_H);
+							p, EVENT_BOX_W, EVENT_BOX_H);
 
 	/* Make all devices timeline */
 	line_size = events_size * EVENT_BOX_H + EVENT_BOX_TOP_MARGIN;
@@ -122,11 +122,10 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	p.x = EVENT_BOX_W / 2 + 6 * SPACE;
 	p.y = 0;
 
-	devices_diagram = make_all_devices_timeline(root, devices_hash, p,
-												line_size);
+	devices_diagram = make_all_devices_timeline(root, devices_hash, p,																line_size);
 
 	/* Make all links */
-	/* Half of EVENT_BOX_W because CrCanvas positioning system */
+	/* Half of EVENT_BOX_W to use  CrCanvas positioning system */
 	make_all_links(root, events_diagram, devices_diagram, EVENT_BOX_W / 2);
 
 	return TRUE;
@@ -138,22 +137,25 @@ GtkWidget *create_diagram(int param, int width, int height,
 	CrZoomer *zoomer;
 	CrPanner *panner;
 	CrRotator *rotator;
-	
+
+	GdkColor white = {0, 0xffff, 0xffff, 0xffff};
+
 	event_callback = ev_callback;
 
 	diagram = cr_canvas_new("maintain_aspect", TRUE,
 				"auto_scale", FALSE,
 				"maintain_center", TRUE,
+				"repaint_mode", TRUE,
 			       	NULL);
+
 	cr_canvas_set_scroll_factor(CR_CANVAS(diagram), 3, 3);
-	
+
 	gtk_widget_set_size_request(diagram, width, height);
-	
 	panner = cr_panner_new(CR_CANVAS(diagram), "button", 1, NULL);
-	
 	cr_canvas_center_on (diagram, 0, height / 2);
 
-	set_events_update_callback(diagram_update);
+	data_dumped_set_update_callback(diagram_update);
 
+	gtk_widget_modify_bg(diagram, GTK_STATE_NORMAL, &white);
 	return diagram;
 }

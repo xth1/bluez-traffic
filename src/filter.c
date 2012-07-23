@@ -25,7 +25,7 @@
 
 #include <glib.h>
 #include <string.h>
-#include "event.h"
+#include "data_dumped.h"
 #include "util.h"
 
 /* Filter parameters */
@@ -41,18 +41,17 @@ typedef gboolean (*event_filter_function) (struct event_t *event);
 
 void filter_set_active_device(struct device_t *device, gboolean active)
 {
-	
+
 	gpointer pointer;
-	
+
 	if(active){
-		
+
 		pointer = g_hash_table_lookup(devices_filter, device->address);
-		
+
 		if(pointer)
 			return;
-		
-		g_hash_table_insert(devices_filter, device->address, device);
-				
+
+		g_hash_table_insert(devices_filter, device->address, device);		
 	}
 	else{
 		pointer = g_hash_table_lookup(devices_filter, device->address);
@@ -72,31 +71,28 @@ void filter_init()
 	if(devices_filter)
 		g_hash_table_destroy(devices_filter);
 	devices_filter = g_hash_table_new(g_str_hash, g_str_equal);
-	
+
 	memset(adapters_filter, 0, sizeof(adapters_filter));
 }
 
 void filter_devices(GHashTable *devices)
 {
 	struct device_t *d;
-	
+
 	gpointer key, value;
-	GHashTableIter iter;
-	
-	printf("Filter devices\n");
+	GHashTableIter iter;	
 
 	if(devices_filtered)
 		g_hash_table_destroy(devices_filtered);
 	devices_filtered = g_hash_table_new(g_str_hash, g_str_equal);
-	
+
 	g_hash_table_iter_init (&iter, devices);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
-		
+
 		if(has_key(devices_filter, d->address)){
 			g_hash_table_insert(devices_filtered, d->address, d);
-			printf("Add device : %s\n", d->address);
 		}
 	}
 }
@@ -120,23 +116,22 @@ void filter_events(GArray *events, int events_size)
 	struct event_t *e;
 
 	gboolean event_accepted;
-	
+
 	if(events_filtered)
 		g_array_free(events_filtered, FALSE);
 	events_filtered = g_array_new(TRUE, TRUE, sizeof(struct event_t *));
-	
+
 	events_filtered_size = 0;
 	for(i = 0; i < events_size; i++){
-		
+	
 		event_accepted = TRUE;
-		
+
 		e = g_array_index(events, void *, i);
-		
+
 		for(j = 0; j < EVENT_FILTER_FUNCTIONS_SIZE; j++){
 			event_accepted &= event_filter_functions[j](e);
 		}
-		
-		printf("Filter ev: %d\n",e->seq_number);
+
 		if(event_accepted){
 			g_array_append_val(events_filtered, e);
 			events_filtered_size++;
@@ -148,9 +143,7 @@ void filter_events(GArray *events, int events_size)
 struct data_dumped_t *filter(struct data_dumped_t *data_in)
 {
 	struct data_dumped_t *data_out;
-	
-	printf("Filter \n");
-	
+
 	data_out = g_new(struct data_dumped_t, 1);
 
 	filter_devices(data_in->devices);

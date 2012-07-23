@@ -27,8 +27,8 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#ifndef EVENT_HEADER
-#include "../event.h"
+#ifndef DATA_DUMPED_HEADER
+#include "../data_dumped.h"
 #endif
 
 #ifndef UTIL_HEADER
@@ -55,7 +55,7 @@ void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 	if(devices_check == NULL)
 		return;
 	
-	connected_devices = ev_get_connected_devices();
+	connected_devices = data_dumped_get_connected_devices();
 	
 	g_hash_table_iter_init (&iter, devices_check);
 	
@@ -65,7 +65,7 @@ void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 		filter_set_active_device(d, gtk_toggle_button_get_active(chk));
 	}
 	
-	events_update();
+	data_dumped_update();
 
 	/* Free resourses */
 	gtk_widget_destroy(device_filters_dialog);
@@ -94,7 +94,7 @@ void create_device_filters_dialog(GtkWidget *window)
 	
 	devices_check = g_hash_table_new (g_str_hash, g_str_equal);
 	
-	connected_devices = ev_get_connected_devices();
+	connected_devices = data_dumped_get_connected_devices();
 
 	device_filters_dialog = gtk_dialog_new_with_buttons ("Devices fiters",
                                          window,

@@ -21,8 +21,8 @@
  *
  */
  
- #ifndef EVENT_HEADER
- #include "event.h"
+ #ifndef DATA_DUMPED_HEADER
+ #include "data_dumped.h"
  #endif
  
 struct data_dumped_t *filter(struct data_dumped_t *data_in);

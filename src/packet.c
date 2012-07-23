@@ -42,7 +42,7 @@
 #include <bluetooth/mgmt.h>
 
 #include "packet.h"
-#include "event.h"
+#include "data_dumped.h"
 #include "util.h"
 #include "UI.h"
 
@@ -217,7 +217,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	packet_hexdump_to_string(data, size, e->data, address);
 	e->type = opcode;
-	add_event(e);
+	data_dumped_add_event(e);
 
 	return 0;
 }
@@ -242,7 +242,7 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 
 	control_message(opcode, data, size, e);
 	
-	add_event(e);
+	data_dumped_add_event(e);
 
 	return 0;
 }

@@ -42,7 +42,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#include "../event.h"
+#include "../data_dumped.h"
 #include "../util.h"
 #include "event_diagram.h"
 
@@ -82,8 +82,7 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 	guint color;
 	
 	struct event_diagram *ed = (struct event_diagram *)user_data;
-	
-	printf("Event : %d\n", event->type);
+
 	switch (event->type) {
 	case GDK_BUTTON_PRESS:
 		if (event->button.button == 1) {
@@ -173,7 +172,8 @@ static void make_event(CrItem *group,struct event_t *e,
 	/* Draw rectangle */
 	rectangle = cr_rectangle_new(group, p.x, p.y, w, h,
                         "line_scaleable", FALSE,
-                        "line_width", 0.0,
+                        "line_width", 0.5,
+                        "outline_color_rgba", 0xedededff,
                         "fill_color_rgba", EVENT_BG_COLOR,
                         "data","data here",
                         NULL);

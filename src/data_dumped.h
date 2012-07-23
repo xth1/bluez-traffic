@@ -21,7 +21,7 @@
  *
  */
 
-#define EVENT_HEADER 1
+#define DATA_DUMPED_HEADER 1
 
 #include <gtk/gtk.h>
 #include <sys/time.h>
@@ -38,7 +38,7 @@ enum
         EVENT_OUTPUT
 };  
 
-typedef void (*events_update_callback) 
+typedef void (*data_dumped_update_callback) 
 	(GArray *events, int size, GHashTable *devices);
 
 struct event_t{
@@ -79,8 +79,8 @@ struct data_dumped_t{
 	GArray *events;
 	int events_size;
 };
-
-void events_init(events_update_callback callback, int ev_lim);
-void add_event(struct event_t *e);
-void events_update();
-GHashTable *ev_get_connected_devices();
+void data_dumped_set_update_callback(data_dumped_update_callback callback);
+void data_dumped_init(data_dumped_update_callback callback, int ev_lim);
+void data_dumped_add_event(struct event_t *e);
+void data_dumped_events_update();
+GHashTable *data_dumped_get_connected_devices();

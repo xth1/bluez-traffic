@@ -23,8 +23,8 @@
 
 #include <gtk/gtk.h>
 
-#ifndef EVENT_HEADER
-#include "event.h"
+#ifndef DATA_DUMPED_HEADER
+#include "data_dumped.h"
 #endif
 
 #ifndef EVENT_DIAGRAM_HEADER

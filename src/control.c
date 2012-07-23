@@ -39,7 +39,7 @@
 
 #include "packet.h"
 #include "control.h"
-#include "event.h"
+#include "data_dumped.h"
 #include "util.h"	
 
 static guint monitor_watch;

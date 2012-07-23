@@ -21,9 +21,9 @@
  *
  */
  
-#ifndef EVENT_HEADER
+#ifndef DATA_DUMPED_HEADER
 
-#include "../event.h"
+#include "../data_dumped.h"
 
 #endif
 

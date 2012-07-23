@@ -30,7 +30,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#include "event.h"
+#include "data_dumped.h"
 #include "util.h"
 #include "UI_components/device_filter_dialog.h"
 

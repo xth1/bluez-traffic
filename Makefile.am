@@ -1,12 +1,12 @@
 bin_PROGRAMS = bluez_traffic
 bluez_traffic_SOURCES = src/main.c src/control.c src/packet.c \
-			src/diagram.c src/UI.c src/util.c src/event.c \
+			src/diagram.c src/UI.c src/util.c src/data_dumped.c \
 			src/diagram_elements/event_diagram.c \
 			src/diagram_elements/device_diagram.c \
 			src/diagram_elements/link_diagram.c \
 			src/filter.c  src/UI_components/device_filter_dialog.c \
 			src/control.h src/packet.h src/diagram.h \
-			src/UI.h src/util.h src/event.h \
+			src/UI.h src/util.h src/data_dumped.h \
 			src/diagram_elements/event_diagram.h \
 			src/diagram_elements/device_diagram.h \
 			src/diagram_elements/link_diagram.h \

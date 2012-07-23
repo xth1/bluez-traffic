@@ -20,7 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
  
-#include "event.h"
+#include "data_dumped.h"
 
 #include "filter.h"
 
@@ -42,7 +42,7 @@ static GArray *events;
 static int events_size;
 
 /* Callback */
-events_update_callback update_callback = NULL;
+data_dumped_update_callback update_callback = NULL;
 
 /* Connected devices */
 static GHashTable *connected_devices;
@@ -54,16 +54,16 @@ void g_hash_table_key_destroy(gpointer data)
 }
 
 void g_hash_table_value_destroy(gpointer data)
-{
-	if(data != NULL)
-		free(data);
-}
+	{
+		if(data != NULL)
+			free(data);
+	}
 
-void add_test_fields(struct event_t *e)
-{
-	
-	/* For test only */
-	e->has_device = 1;
+	void add_test_fields(struct event_t *e)
+	{
+		
+		/* For test only */
+		e->has_device = 1;
 
 	if(rand() % 3)
 		strcpy(e->device_address, TEST_ADDRESS);
@@ -87,7 +87,7 @@ void add_test_fields(struct event_t *e)
 	
 }
 
-void events_update()
+void data_dumped_update()
 {
 	struct data_dumped_t *data_in, *data_out;
 	/* Filter */
@@ -103,7 +103,7 @@ void events_update()
 						data_out->devices);
 }
 
-void add_event(struct event_t *e)
+void data_dumped_add_event(struct event_t *e)
 {	
 	e->seq_number = event_count++;
 	
@@ -115,10 +115,10 @@ void add_event(struct event_t *e)
 		g_array_prepend_val(events, e);
 		events_size++;
 	}
-	
+
 	add_test_fields(e);
 	
-	events_update();
+	data_dumped_update();
 }
 
 struct event_t *get_event(int p)
@@ -126,14 +126,14 @@ struct event_t *get_event(int p)
 	return g_array_index(events, void *, p);
 }
 
-void add_device(struct device_t *device)
+void data_dumped_add_device(struct device_t *device)
 {
 	g_hash_table_insert(connected_devices, device->address, device);
 	
 	filter_set_active_device(device, TRUE);
 }
 
-GHashTable *ev_get_connected_devices()
+GHashTable *data_dumped_get_connected_devices()
 {
 	return connected_devices;
 }
@@ -147,7 +147,7 @@ struct device_t *get_device(char *address)
 	return d;
 }
 
-void events_init(events_update_callback callback, int ev_lim)
+void data_dumped_init(data_dumped_update_callback callback, int ev_lim)
 {
 	struct device_t *d;
 	events = g_array_new(FALSE, FALSE, sizeof(struct event_t *));
@@ -169,7 +169,7 @@ void events_init(events_update_callback callback, int ev_lim)
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
-	add_device(d);
+	data_dumped_add_device(d);
 
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS2);
@@ -178,7 +178,7 @@ void events_init(events_update_callback callback, int ev_lim)
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
-	add_device(d);
+	data_dumped_add_device(d);
 
 	d = (struct device_t *) malloc(sizeof(struct device_t));
 	strcpy(d->address, TEST_ADDRESS3);
@@ -187,13 +187,13 @@ void events_init(events_update_callback callback, int ev_lim)
 	d->id_initial_event = events_size;
 	d->id_least_event = -1;
 
-	add_device(d);
+	data_dumped_add_device(d);
 	
 	/* for tests only */
 	srand(time(0));
 }
 
-void set_events_update_callback(events_update_callback callback)
+void data_dumped_set_update_callback(data_dumped_update_callback callback)
 {
 	update_callback = callback;
 }

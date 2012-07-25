@@ -136,7 +136,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 
 	/* Init diagram */
 	diagram = create_diagram(0, 640, 400, 
-							(event_diagram_callback) show_event_details);	
+					(event_diagram_callback) show_event_details);	
 
 	/* Set window attributes */
 	gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);

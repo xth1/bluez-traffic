@@ -36,9 +36,9 @@ enum
 {
         EVENT_INPUT,
         EVENT_OUTPUT
-};  
+};
 
-typedef void (*data_dumped_update_callback) 
+typedef void (*data_dumped_update_callback)
 	(GArray *events, int size, GHashTable *devices);
 
 struct event_t{
@@ -50,7 +50,7 @@ struct event_t{
 	char type_str[EVENT_TYPE_LENGTH];
 	char name[EVENT_NAME_LENGTH];
 	int seq_number;
-	
+
 	/* Sequence number of previus event */
 	int previus_event;
 

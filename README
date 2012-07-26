@@ -17,14 +17,22 @@ Gustavo Padovan <gustavo@padovan.org>, Mentor
 Compilation and installation
 ============================
 
-In order to compile Bluetooth utilities you need following software packages:
+In order to compile Bluez-Traffic you need following software packages:
 	- Linux Bluetooth protocol stack (BlueZ)
 	- GCC compiler
 	- D-Bus library
 	- GLib library
 	- GTK+ library
 	- Cairo library
-	- CrCanvas librar (Available in http://sourceforge.net/projects/geocanvas/files/crcanvas/)
+	- CrCanvas library (Available in [0])
+
+[0] http://sourceforge.net/projects/geocanvas/files/crcanvas/
+
+NOTE:
+In order to avoid runtime errors due to failure to locate the library crcanvas,
+you may need to add some directories to LD_LIBRARY_PATH:
+export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
+
 
 To genenerate configure script:
 	./bootstrap

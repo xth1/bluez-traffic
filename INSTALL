@@ -20,7 +20,7 @@ In order to compile Bluez-Traffic you need following software packages:
 
 [0] http://sourceforge.net/projects/geocanvas/files/crcanvas/
 
-To avoid runtime errors due to failure to locate the library crcanvas,
+To avoid runtime errors due to failure to find the library crcanvas,
 you may need to add some directories to LD_LIBRARY_PATH:
 export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
 

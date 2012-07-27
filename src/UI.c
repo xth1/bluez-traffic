@@ -72,15 +72,15 @@ gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 	return FALSE;
 }
 
-gboolean show_event_details(struct event_diagram *ed, 
+gboolean show_event_details(struct event_diagram *ed,
 							int action)
 {
 	char buff[MAX_BUFF], aux[MAX_BUFF];
 	gpointer key, value;
 	GHashTableIter iter;
-	
+
 	struct event_t *event = ed->event;
-	
+
 	if(action == EVENT_SELECTED){
 		/* Show packet details */
 		strcpy(buff, "");
@@ -97,7 +97,7 @@ gboolean show_event_details(struct event_diagram *ed,
 		else{
 			gtk_label_set_text(packet_detail, event->data);
 		}
-		
+
 		gtk_widget_show(packet_frame);
 	}
 	else if(action == EVENT_UNSELECTED){
@@ -131,12 +131,12 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	packet_detail = gtk_label_new("");
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
-	
+
 	v_paned = gtk_vpaned_new();
 
 	/* Init diagram */
-	diagram = create_diagram(0, 640, 400, 
-					(event_diagram_callback) show_event_details);	
+	diagram = create_diagram(0, 640, 400,
+					(event_diagram_callback) show_event_details);
 
 	/* Set window attributes */
 	gtk_window_set_title(GTK_WINDOW(window), WINDOW_TITLE);
@@ -160,7 +160,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
-	
+
 	/* Filters menu */
 	filters_menu = gtk_menu_new();
 	filters = gtk_menu_item_new_with_mnemonic("_Filters");
@@ -171,13 +171,13 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(filters), filters_menu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filters_menu), device_filter);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), filters);
-	
+
 	/* Add scrollable diagram */
 	gtk_paned_pack1(GTK_PANED(v_paned), sw, FALSE, FALSE);
 	gtk_container_add(GTK_CONTAINER(sw), diagram);
-	
+
 	/* Add packet details frame */
-	gtk_frame_set_shadow_type(packet_frame_details, GTK_SHADOW_NONE);   
+	gtk_frame_set_shadow_type(packet_frame_details, GTK_SHADOW_NONE);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(packet_frame_scroll),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_label_set_selectable(packet_detail, TRUE);
@@ -188,10 +188,10 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
 
 	gtk_paned_pack2(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
-	
+
 	/* Add box */
 	gtk_box_pack_start(GTK_BOX(vbox), v_paned, TRUE, TRUE, 0);
-	
+
 	/* Set events handlers */
 	g_signal_connect(window, "destroy", G_CALLBACK(on_destroy_event), NULL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

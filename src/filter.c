@@ -20,8 +20,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
-#define MAX_NUM_ADAPTERS 64 
+
+#define MAX_NUM_ADAPTERS 64
 
 #include <glib.h>
 #include <string.h>
@@ -51,11 +51,11 @@ void filter_set_active_device(struct device_t *device, gboolean active)
 		if(pointer)
 			return;
 
-		g_hash_table_insert(devices_filter, device->address, device);		
+		g_hash_table_insert(devices_filter, device->address, device);
 	}
 	else{
 		pointer = g_hash_table_lookup(devices_filter, device->address);
-		
+
 		if(pointer)
 			g_hash_table_remove(devices_filter, device->address);
 	}
@@ -80,7 +80,7 @@ void filter_devices(GHashTable *devices)
 	struct device_t *d;
 
 	gpointer key, value;
-	GHashTableIter iter;	
+	GHashTableIter iter;
 
 	if(devices_filtered)
 		g_hash_table_destroy(devices_filtered);
@@ -123,7 +123,6 @@ void filter_events(GArray *events, int events_size)
 
 	events_filtered_size = 0;
 	for(i = 0; i < events_size; i++){
-	
 		event_accepted = TRUE;
 
 		e = g_array_index(events, void *, i);
@@ -135,7 +134,6 @@ void filter_events(GArray *events, int events_size)
 		if(event_accepted){
 			g_array_append_val(events_filtered, e);
 			events_filtered_size++;
-			printf("Accept: %d\n", events_filtered_size);
 		}
 	}
 }

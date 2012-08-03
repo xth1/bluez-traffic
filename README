@@ -31,8 +31,8 @@ In order to compile Bluez-Traffic you need following software packages:
 NOTE:
 In order to avoid runtime errors due to failure to find the library crcanvas,
 you may need to add some directories to LD_LIBRARY_PATH:
-export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
-
+	export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
+	sudo ldconfig
 
 To genenerate configure script:
 	./bootstrap
@@ -46,6 +46,11 @@ Configure automatically searches for all required components and packages.
 
 To compile and install run:
 	make && make install
+
+Run
+============
+It's necessary be root to run this tool.
+
 
 Information
 ===========

@@ -95,9 +95,6 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 
 	gpointer key, value;
 	GHashTableIter iter;
-
-	/*Buggy: without following line this program crash (!?)*/
-	printf("Update diagram\n");
 	
 	/* Set global vaiables */
 	events_list = events;
@@ -115,6 +112,7 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	p.y = EVENT_BOX_TOP_MARGIN;
 	events_diagram = make_all_events(root, events, event_callback, size,
 							p, EVENT_BOX_W, EVENT_BOX_H);
+	
 
 	/* Make all devices timeline */
 	line_size = events_size * EVENT_BOX_H + EVENT_BOX_TOP_MARGIN;

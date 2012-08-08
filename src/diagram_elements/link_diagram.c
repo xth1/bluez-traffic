@@ -188,7 +188,7 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 	
 }
 
-void make_all_connection_links(CrItem *group,GHashTable *events_diagram, 
+void make_all_connection_links(CrItem *group, GHashTable *events_diagram, 
 					GHashTable *devices_diagram, int event_box_width)
 {
 	gpointer key, value;

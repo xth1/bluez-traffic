@@ -612,7 +612,7 @@ static void mgmt_discovering(uint16_t len, const void *buf,
 	packet_hexdump(buf, len);
 	/* Set */
 	sprintf(e->type_str,"@ Discovering");
-	sprintf(e->name,"Info: %s (%d)", ev->discovering, ev->type);
+	sprintf(e->name,"Info: 0x%2.2x (%d)", ev->discovering, ev->type);
 	strcpy(e->device_address, "");
 /*	printf("End discovering\n");
 	fflush(stdin);

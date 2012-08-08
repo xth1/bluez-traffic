@@ -67,6 +67,8 @@ static GHashTable *devices_hash = NULL;
 static GHashTable *devices_diagram = NULL;
 static GHashTable *events_diagram = NULL;
 
+static CrItem *root;
+
 /* Callback function for event */
 static event_diagram_callback event_callback;
 
@@ -90,19 +92,16 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	struct point p;
 
 	int line_size;
-	CrItem *root;
 	int i;
 
 	gpointer key, value;
 	GHashTableIter iter;
 	
-	/* Set global vaiables */
+	/* Set global variables */
 	events_list = events;
 	events_size = size;
 	devices_hash = devices;
 
-	/* Get root item */
-	g_object_get(diagram, "root", &root);
 
 	/* Clear diagram */
 	on_clear(root);
@@ -125,7 +124,8 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	/* Make all links */
 	/* Half of EVENT_BOX_W to use  CrCanvas positioning system */
 	make_all_links(root, events_diagram, devices_diagram, EVENT_BOX_W / 2);
-
+	
+	printf("update %p\n", root);
 	return TRUE;
 }
 
@@ -155,5 +155,9 @@ GtkWidget *create_diagram(int param, int width, int height,
 	data_dumped_set_update_callback(diagram_update);
 
 	gtk_widget_modify_bg(diagram, GTK_STATE_NORMAL, &white);
+
+	/* Get root item */
+	g_object_get(diagram, "root", &root);
+
 	return diagram;
 }

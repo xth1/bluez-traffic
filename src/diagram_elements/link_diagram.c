@@ -46,20 +46,20 @@
 #include "event_diagram.h"
 #include "device_diagram.h"
 
-#define LINK_RIGHT_COLOR 0xff9999fe
-#define LINK_LEFT_COLOR 0x99ff99dfe
+#define LINK_RIGHT_COLOR ((guint)0xff9999fe0)
+#define LINK_LEFT_COLOR (guint)0x99ff99dfe
 
-#define LINK_CONNECTION_COLOR 0x9999ffdcc
-#define LINK_CONNECTION_UPPER_COLOR 0x9999ffdfe
+#define LINK_CONNECTION_COLOR (guint)0x9999ffdcc
+#define LINK_CONNECTION_UPPER_COLOR (guint)0x9999ffdfe
 
 #define CIRCLE_RADIUS 5
-#define CIRCLE_COLOR 0x9999ffdfe
+#define CIRCLE_COLOR (guint)0x9999ffdfe
 
 void add_circle(CrItem *group, struct point p)
 {
 	CrItem *circle;
 	cr_ellipse_new(group, p.x , p.y,CIRCLE_RADIUS,CIRCLE_RADIUS, 0,
-					"outline_color_rgba", CIRCLE_COLOR,
+					"outline_color_rgba", CIRCLE_COLOR, 
 					"line_width", 1.5,
 					NULL);
 }
@@ -81,7 +81,7 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 					"fill_color_rgba", color,
 					"end_scaleable", FALSE,
 					"line_scaleable", FALSE,
-					"line_width", 1.5,
+					"line_width", 1.5, 
 					NULL);
 		
 	/*add_circle(link, p1);*/
@@ -160,7 +160,7 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 					"outline_color_rgba", LINK_CONNECTION_COLOR,
 					"end_scaleable", FALSE,
 					"line_scaleable", FALSE,
-					"line_width", 1.5,
+					"line_width", 1.5, 
 					NULL);
 	}
 	
@@ -170,7 +170,7 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 				"outline_color_rgba", LINK_CONNECTION_COLOR,
 				"end_scaleable", FALSE,
 				"line_scaleable", FALSE,
-				"line_width", 1.5,
+				"line_width", 1.5, 
 				NULL);
 	
 	/* Draw line up timeline */
@@ -179,7 +179,7 @@ void add_connection_link(CrItem *group, struct point p1, struct point p2,
 				"outline_color_rgba", LINK_CONNECTION_UPPER_COLOR,
 				"end_scaleable", FALSE,
 				"line_scaleable", FALSE,
-				"line_width", 1.5,
+				"line_width", 1.5, 
 				NULL);
 	
 	/* Draw circles */

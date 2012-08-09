@@ -43,7 +43,7 @@
 #include "data_dumped.h"
 #endif
 
-#define MAX_EVENTS_STORAGE 50
+#define MAX_EVENTS_STORAGE 200
 
 int main(int argc, char **argv)
 {

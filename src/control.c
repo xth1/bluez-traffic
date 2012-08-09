@@ -614,9 +614,6 @@ static void mgmt_discovering(uint16_t len, const void *buf,
 	sprintf(e->type_str,"@ Discovering");
 	sprintf(e->name,"Info: 0x%2.2x (%d)", ev->discovering, ev->type);
 	strcpy(e->device_address, "");
-/*	printf("End discovering\n");
-	fflush(stdin);
-*/
 }
 
 static void mgmt_device_blocked(uint16_t len, const void *buf,

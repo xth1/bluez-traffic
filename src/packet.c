@@ -145,16 +145,16 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 			strcat(out,aux);
 			str[0] = ' ';
 			/*take address*/
-			/*if(!has_address){
+			if(!has_address){
 				for(j = 0; j < 17;j++){
-					adr[j] = str[17 - i];
+					adr[j] = str[17 - j];
 				}
 				adr[18]='\0';
 				has_address = 1;
 				
-				printf("Address %s\n",adr);
+				printf("HEX Address %s %s\n",str, adr);
 			}
-			*/ 
+			 
 		}
 		
 	}

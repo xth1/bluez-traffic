@@ -203,6 +203,8 @@ struct event_t *create_event_object(int data_length)
 	e->attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
 					event_attributes_key_destroy,
 					event_attributes_value_destroy);
+	
+	e->is_device_connection = FALSE;
 
 	strcpy(e->device_address,"");
 	e->has_device = FALSE;

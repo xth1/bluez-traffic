@@ -45,6 +45,7 @@
 #include "data_dumped.h"
 #include "util.h"
 #include "UI.h"
+#include "bt.h"
 
 #define MONITOR_NEW_INDEX	0
 #define MONITOR_DEL_INDEX	1
@@ -199,7 +200,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		packet_hci_command(e->name, e->type_str,tv, index, data, size);
 		break;
 	case MONITOR_EVENT_PKT:
-		packet_hci_event(e->name, e->type_str, tv, index, data, size);
+		packet_hci_event(e, tv, index, data, size);
 		break;
 	}
 
@@ -610,7 +611,27 @@ static const char *event2str(uint8_t event)
 	return "Unknown";
 }
 
-void packet_hci_event(char *name_out,char *type_out,
+void parser_event(struct event_t *e, const void *data, uint8_t opcode)
+{
+	struct bt_hci_evt_inquiry_result *p;
+	struct bt_hci_evt_ext_inquiry_result *pp;
+	
+	e->direction = EVENT_OUTPUT;
+	switch(opcode){
+		case BT_HCI_EVT_INQUIRY_RESULT:
+			p = (struct bt_hci_evt_inquiry_result *) data;
+			ba2str(&p->bdaddr, e->device_address);
+			e->has_device = TRUE;
+			break;
+		case BT_HCI_EVT_EXT_INQUIRY_RESULT:
+			pp = (struct bt_hci_evt_ext_inquiry_result *) data;
+			ba2str(&pp->bdaddr, e->device_address);
+			e->has_device = TRUE;
+			break;
+	}	
+}
+
+void packet_hci_event(struct event_t *e,
 			struct timeval *tv, uint16_t index,
 			const void *data, uint16_t size)
 {
@@ -620,13 +641,15 @@ void packet_hci_event(char *name_out,char *type_out,
 		printf("* Malformed HCI Event packet\n");
 		return;
 	}
-	sprintf(type_out,"> HCI Event");
+	sprintf(e->type_str,"> HCI Event");
 
-	sprintf(name_out,"%s (0x%2.2x) plen %d\n",
+	sprintf(e->name,"%s (0x%2.2x) plen %d\n",
 				event2str(hdr->evt), hdr->evt, hdr->plen);
 
 	data += HCI_EVENT_HDR_SIZE;
 	size -= HCI_EVENT_HDR_SIZE;
+	
+	parser_event(e, data, hdr->evt);
 
 	packet_hexdump(data, size);
 }

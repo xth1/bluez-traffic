@@ -72,11 +72,30 @@ parser_hci_cmd_create_conn(struct event_t *e, const void *data)
 		to_str(p->role_switch));
 }
 
+parser_hci_cmd_accept_conn_request(struct event_t *e, const void *data)
+{
+	struct bt_hci_cmd_accept_conn_request *p;
+	p = (struct bt_hci_cmd_accept_conn_request *) data;
+	
+	/* It's a device connection  */
+	e->is_device_connection = TRUE;
+	/* Address */
+	ba2str(&p->bdaddr, e->device_address);
+	e->has_device = TRUE;
+
+	/* Atributtes */
+	g_hash_table_insert(e->attributes, make_str("Role"),
+		to_str(p->role));
+	
+}
 void parser_command(struct event_t *e, const void *data, uint8_t opcode)
 {
 	switch(opcode){
 		case BT_HCI_CMD_CREATE_CONN:
 			parser_hci_cmd_create_conn(e, data);
+			break;
+		case BT_HCI_CMD_ACCEPT_CONN_REQUEST:
+			parser_hci_cmd_accept_conn_request(e, data);
 			break;
 	}	
 }
@@ -99,8 +118,6 @@ void parser_hci_evt_inquiry_result(struct event_t *e, const void *data)
 		to_str(p->pscan_period_mode));
 	g_hash_table_insert(e->attributes, make_str("pscan_mode"),
 		to_str(p->pscan_mode));
-//	g_hash_table_insert(e->attributes, make_str("dev_class"),
-//		make_str(p->pscan_mode));
 	g_hash_table_insert(e->attributes, make_str("Clock offset"),
 		to_str(p->clock_offset));
 	
@@ -122,8 +139,6 @@ void parser_hci_evt_ext_inquiry_result(struct event_t *e, const void *data)
 		to_str(p->pscan_rep_mode));
 	g_hash_table_insert(e->attributes, make_str("pscan_period_mode"),
 		to_str(p->pscan_period_mode));
-//	g_hash_table_insert(e->attributes, make_str("dev_class"),
-//		make_str(p->pscan_mode));
 	g_hash_table_insert(e->attributes, make_str("Clock offset"),
 		to_str(p->clock_offset));
 	g_hash_table_insert(e->attributes, make_str("rssi"),

@@ -513,7 +513,7 @@ void packet_hci_command(struct event_t *e,
 		return;
 	}
 	sprintf(e->type_str,"< HCI Command");
-	sprintf(e->name,"%s (0x%2.2x) plen %d\n\n",
+	sprintf(e->name,"%s (0x%2.2x) plen %d",
 				opcode2str(opcode), ogf, ocf, hdr->plen);
 	parser_command(e, data, opcode);
 	data += HCI_COMMAND_HDR_SIZE;
@@ -626,7 +626,7 @@ void packet_hci_event(struct event_t *e,
 	}
 	sprintf(e->type_str,"> HCI Event");
 
-	sprintf(e->name,"%s (0x%2.2x) plen %d\n",
+	sprintf(e->name,"%s (0x%2.2x) plen %d",
 				event2str(hdr->evt), hdr->evt, hdr->plen);
 
 	data += HCI_EVENT_HDR_SIZE;

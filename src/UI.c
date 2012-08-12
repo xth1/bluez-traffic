@@ -30,10 +30,10 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
-#include "data_dumped.h"
+//#include "data_dumped.h"
 #include "util.h"
 #include "UI_components/device_filter_dialog.h"
-
+#include "UI_components/event_detail.h"
 #ifndef DIAGRAM_HEADER
 #include "diagram.h"
 #endif
@@ -50,15 +50,12 @@
 
 static GtkWidget *window = NULL;
 static GtkWidget *diagram = NULL;
-static GtkWidget *packet_frame = NULL;
-static GtkWidget *packet_detail = NULL;
+
 static GMainLoop *mainloop = NULL;
 
 void destroy_widgets()
 {
 	gtk_widget_destroy(window);
-	gtk_widget_destroy(packet_frame);
-	gtk_widget_destroy(packet_detail);
 	gtk_widget_destroy(diagram);
 }
 
@@ -72,39 +69,6 @@ gboolean on_destroy_event(GtkWidget *widget,GdkEventExpose *event,
 	return FALSE;
 }
 
-gboolean show_event_details(struct event_diagram *ed,
-							int action)
-{
-	char buff[MAX_BUFF], aux[MAX_BUFF];
-	gpointer key, value;
-	GHashTableIter iter;
-
-	struct event_t *event = ed->event;
-
-	if(action == EVENT_SELECTED){
-		/* Show packet details */
-		strcpy(buff, "");
-		if(g_hash_table_size(event->attributes) > 0){
-			g_hash_table_iter_init (&iter, event->attributes);
-			strcpy(buff, "Attributes\n\n");
-			while (g_hash_table_iter_next (&iter, &key, &value))
-			{
-				sprintf(aux,"%s : %s\n",(char *) key,(char *) value);
-				strcat(buff, aux);
-			}
-			gtk_label_set_text(packet_detail, buff);
-		}
-		else{
-			gtk_label_set_text(packet_detail, event->data);
-		}
-
-		gtk_widget_show(packet_frame);
-	}
-	else if(action == EVENT_UNSELECTED){
-		gtk_widget_hide(packet_frame);
-	}
-}
-
 void on_device_filters_click(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
@@ -115,8 +79,8 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 {
 	GtkWidget *sw, *viewport, *vbox, *menubar, *filemenu, *file, *quit;
 	GtkWidget *filters, *filters_menu, *device_filter;
-	GtkWidget *packet_frame_scroll, *packet_frame_details;
 	GtkWidget *v_paned;
+	GtkWidget *packet_frame;
 	GtkRequisition size;
 	struct device_t *d;
 
@@ -126,11 +90,9 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	mainloop = loop;
 	window = gtk_window_new(0);
 
-	packet_frame = gtk_frame_new("Event details");
-	packet_frame_details = gtk_frame_new("");
-	packet_detail = gtk_label_new("");
+
 	sw = gtk_scrolled_window_new(NULL, NULL);
-	packet_frame_scroll = gtk_scrolled_window_new(NULL, NULL);
+	
 
 	v_paned = gtk_vpaned_new();
 
@@ -160,7 +122,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file);
-
+	
 	/* Filters menu */
 	filters_menu = gtk_menu_new();
 	filters = gtk_menu_item_new_with_mnemonic("_Filters");
@@ -177,16 +139,7 @@ int UI_init(int argc,char **argv,GMainLoop *loop)
 	gtk_container_add(GTK_CONTAINER(sw), diagram);
 
 	/* Add packet details frame */
-	gtk_frame_set_shadow_type(packet_frame_details, GTK_SHADOW_NONE);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(packet_frame_scroll),
-			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_label_set_selectable(packet_detail, TRUE);
-	gtk_container_add(GTK_CONTAINER(packet_frame_details), packet_detail);
-
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
-								packet_frame_details);
-	gtk_container_add(GTK_CONTAINER(packet_frame), packet_frame_scroll);
-
+	packet_frame = event_details_init();
 	gtk_paned_pack2(GTK_PANED(v_paned), packet_frame, TRUE, FALSE);
 
 	/* Add box */

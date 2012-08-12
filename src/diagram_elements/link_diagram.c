@@ -64,15 +64,17 @@ void add_circle(CrItem *group, struct point p)
 					NULL);
 }
 
-void add_comunication_link(CrItem *group, struct point p1, struct point p2, int dir)
+void add_comunication_link(CrItem *group, struct point p1, struct point p2, int comunication_type)
 {
 	CrItem *link;
 	
 	unsigned long long int color;
 	
-	if(dir == EVENT_OUTPUT)
+	if(comunication_type == EVENT_CONNECTION)
+		color = LINK_CONNECTION_COLOR;
+	else if(comunication_type == EVENT_INPUT)
 		color = LINK_RIGHT_COLOR;
-	else
+	else if(comunication_type == EVENT_INPUT)
 		color = LINK_LEFT_COLOR;
 	
 	link = cr_vector_new(group, p1.x , p2.y, 
@@ -85,7 +87,10 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 					NULL);
 		
 	/*add_circle(link, p1);*/
-	cr_arrow_new(link, 0, NULL);	
+//	if(comunication_type == EVENT_CONNECTION)
+//		add_circle(group, p2);
+//	else
+		cr_arrow_new(link, 0, NULL);	
 }
 
 void make_all_comunication_links(CrItem *group,GHashTable *events_diagram, 
@@ -131,10 +136,10 @@ void make_all_comunication_links(CrItem *group,GHashTable *events_diagram,
 			p_dev.x = dd->position.x;
 			p_dev.y = ed->position.y;
 			
-			if(e->direction == EVENT_OUTPUT)
-					add_comunication_link(group, p_ev, p_dev, e->direction);
+			if(e->comunication_type == EVENT_INPUT)
+					add_comunication_link(group, p_ev, p_dev, e->comunication_type);
 			else
-					add_comunication_link(group, p_dev, p_ev, e->direction);
+					add_comunication_link(group, p_dev, p_ev, e->comunication_type);
 		}	
 	}
 }

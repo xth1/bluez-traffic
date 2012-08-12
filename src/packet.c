@@ -45,7 +45,7 @@
 #include "data_dumped.h"
 #include "util.h"
 #include "UI.h"
-#include "bt.h"
+#include "parser.h"
 
 #define MONITOR_NEW_INDEX	0
 #define MONITOR_DEL_INDEX	1
@@ -611,30 +611,13 @@ static const char *event2str(uint8_t event)
 	return "Unknown";
 }
 
-void parser_event(struct event_t *e, const void *data, uint8_t opcode)
-{
-	struct bt_hci_evt_inquiry_result *p;
-	struct bt_hci_evt_ext_inquiry_result *pp;
-	
-	e->direction = EVENT_OUTPUT;
-	switch(opcode){
-		case BT_HCI_EVT_INQUIRY_RESULT:
-			p = (struct bt_hci_evt_inquiry_result *) data;
-			ba2str(&p->bdaddr, e->device_address);
-			e->has_device = TRUE;
-			break;
-		case BT_HCI_EVT_EXT_INQUIRY_RESULT:
-			pp = (struct bt_hci_evt_ext_inquiry_result *) data;
-			ba2str(&pp->bdaddr, e->device_address);
-			e->has_device = TRUE;
-			break;
-	}	
-}
 
 void packet_hci_event(struct event_t *e,
 			struct timeval *tv, uint16_t index,
 			const void *data, uint16_t size)
 {
+	e->comunication_type = EVENT_OUTPUT;
+	
 	const hci_event_hdr *hdr = data;
 
 	if (size < HCI_EVENT_HDR_SIZE) {

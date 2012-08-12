@@ -35,7 +35,8 @@
 enum
 {
         EVENT_INPUT,
-        EVENT_OUTPUT
+        EVENT_OUTPUT,
+        EVENT_CONNECTION
 };
 
 typedef void (*data_dumped_update_callback)
@@ -58,7 +59,7 @@ struct event_t{
 	/* Device attibutes */
 	int has_device;
 	char device_address[ADDRESS_LENGTH];
-	int direction;
+	int comunication_type;
 	/* Device connection/disconnection happened in this event */
 	gboolean is_device_connection;
 	/* Set by filter */

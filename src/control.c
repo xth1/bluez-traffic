@@ -709,6 +709,8 @@ static void mgmt_device_unpaired(uint16_t len, const void *buf,
 void control_message(uint16_t opcode, const void *data, uint16_t size,
 					struct event_t *e)
 {
+	
+	e->comunication_type = EVENT_CONNECTION;
 	switch (opcode) {
 	case MGMT_EV_INDEX_ADDED:
 		mgmt_index_added(size, data, e);

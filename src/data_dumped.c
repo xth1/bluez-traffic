@@ -85,9 +85,9 @@ void add_test_fields(struct event_t *e)
 		strcpy(e->device_address, TEST_ADDRESS3);
 
 	if(events_size % 2)
-		e->direction = EVENT_INPUT;
+		e->comunication_type = EVENT_INPUT;
 	else
-		e->direction = EVENT_OUTPUT;
+		e->comunication_type = EVENT_OUTPUT;
 
 	/* Add test connection seq */
 	if(rand() %10 == 1){

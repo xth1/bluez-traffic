@@ -74,7 +74,7 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 		color = LINK_CONNECTION_COLOR;
 	else if(comunication_type == EVENT_INPUT)
 		color = LINK_RIGHT_COLOR;
-	else if(comunication_type == EVENT_INPUT)
+	else if(comunication_type == EVENT_OUTPUT)
 		color = LINK_LEFT_COLOR;
 	
 	link = cr_vector_new(group, p1.x , p2.y, 
@@ -87,9 +87,9 @@ void add_comunication_link(CrItem *group, struct point p1, struct point p2, int 
 					NULL);
 		
 	/*add_circle(link, p1);*/
-//	if(comunication_type == EVENT_CONNECTION)
-//		add_circle(group, p2);
-//	else
+	if(comunication_type == EVENT_CONNECTION)
+		add_circle(group, p2);
+	else
 		cr_arrow_new(link, 0, NULL);	
 }
 
@@ -136,7 +136,8 @@ void make_all_comunication_links(CrItem *group,GHashTable *events_diagram,
 			p_dev.x = dd->position.x;
 			p_dev.y = ed->position.y;
 			
-			if(e->comunication_type == EVENT_INPUT)
+			if(e->comunication_type == EVENT_INPUT || 
+				e->comunication_type == EVENT_CONNECTION)
 					add_comunication_link(group, p_ev, p_dev, e->comunication_type);
 			else
 					add_comunication_link(group, p_dev, p_ev, e->comunication_type);

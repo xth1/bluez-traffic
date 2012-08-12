@@ -46,6 +46,40 @@
 #include "util.h"
 #include "bt.h"
 
+parser_hci_cmd_create_conn(struct event_t *e, const void *data)
+{
+	struct bt_hci_cmd_create_conn *p;
+	p = (struct bt_hci_cmd_create_conn *) data;
+	
+	/* It's a device connection  */
+	e->is_device_connection = TRUE;
+	/* Address */
+	ba2str(&p->bdaddr, e->device_address);
+	e->has_device = TRUE;
+
+	/* Atributtes */
+	g_hash_table_insert(e->attributes, make_str("Packet type"),
+		to_str(p->pkt_type));
+	g_hash_table_insert(e->attributes, make_str("pscan_rep_mode"),
+		to_str(p->pscan_rep_mode));
+	g_hash_table_insert(e->attributes, make_str("pscan_mode"),
+		to_str(p->pscan_mode));
+//	g_hash_table_insert(e->attributes, make_str("dev_class"),
+//		make_str(p->pscan_mode));
+	g_hash_table_insert(e->attributes, make_str("Clock offset"),
+		to_str(p->clock_offset));
+	g_hash_table_insert(e->attributes, make_str("role_switch"),
+		to_str(p->role_switch));
+}
+
+void parser_command(struct event_t *e, const void *data, uint8_t opcode)
+{
+	switch(opcode){
+		case BT_HCI_CMD_CREATE_CONN:
+			parser_hci_cmd_create_conn(e, data);
+			break;
+	}	
+}
 
 void parser_hci_evt_inquiry_result(struct event_t *e, const void *data)
 {

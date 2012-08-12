@@ -22,4 +22,5 @@
  *
  */
  
- void parser_event(struct event_t *e, const void *data, uint8_t opcode);
+void parser_event(struct event_t *e, const void *data, uint8_t opcode);
+void parser_command(struct event_t *e, const void *data, uint8_t opcode);

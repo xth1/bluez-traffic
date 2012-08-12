@@ -197,7 +197,7 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		ba2str(&ni->bdaddr, str);
 		break;
 	case MONITOR_COMMAND_PKT:
-		packet_hci_command(e->name, e->type_str,tv, index, data, size);
+		packet_hci_command(e ,tv, index, data, size);
 		break;
 	case MONITOR_EVENT_PKT:
 		packet_hci_event(e, tv, index, data, size);
@@ -497,7 +497,7 @@ static const char *opcode2str(uint16_t opcode)
 	return "Unknown";
 }
 
-void packet_hci_command(char *name_out,char *type_out,
+void packet_hci_command(struct event_t *e,
 			struct timeval *tv, uint16_t index,
 			const void *data, uint16_t size)
 {
@@ -512,10 +512,10 @@ void packet_hci_command(char *name_out,char *type_out,
 		printf("* Malformed HCI Command packet\n");
 		return;
 	}
-	sprintf(type_out,"< HCI Command");
-	sprintf(name_out,"%s (0x%2.2x) plen %d\n\n",
+	sprintf(e->type_str,"< HCI Command");
+	sprintf(e->name,"%s (0x%2.2x) plen %d\n\n",
 				opcode2str(opcode), ogf, ocf, hdr->plen);
-
+	parser_command(e, data, opcode);
 	data += HCI_COMMAND_HDR_SIZE;
 	size -= HCI_COMMAND_HDR_SIZE;
 }

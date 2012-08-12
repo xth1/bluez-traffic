@@ -23,6 +23,7 @@
  
 #include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <cr-canvas.h>
 #include <cr-pixbuf.h>
@@ -36,6 +37,7 @@
 #include <cr-rotator.h>
 #include <cr-inverse.h>
 #include <cr-arrow.h>
+
 
 #include <glib.h>
 
@@ -80,6 +82,22 @@ static void do_remove(CrItem *child, CrItem *parent)
 static void on_clear(CrItem *group)
 {
         g_list_foreach(group->items, (GFunc) do_remove, group);
+}
+
+gboolean
+on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+	switch(event->keyval)
+	{
+		case GDK_Up:
+			printf("UP\n");
+			break;
+		case GDK_Down:
+			printf("Down\n");
+			break;
+	}
+	printf("key press: %d\n",event->keyval);
+	return TRUE;
 }
 
 gboolean diagram_update(GArray *events, int size, GHashTable *devices)
@@ -158,6 +176,9 @@ GtkWidget *create_diagram(int param, int width, int height,
 
 	/* Get root item */
 	g_object_get(diagram, "root", &root);
+	
+	g_signal_connect (G_OBJECT (diagram), "key_press_event",
+					G_CALLBACK (on_key_press), NULL);
 
 	return diagram;
 }

@@ -50,7 +50,7 @@ parser_hci_cmd_create_conn(struct event_t *e, const void *data)
 {
 	struct bt_hci_cmd_create_conn *p;
 	p = (struct bt_hci_cmd_create_conn *) data;
-	
+
 	/* It's a device connection  */
 	e->is_device_connection = TRUE;
 	/* Address */
@@ -64,8 +64,6 @@ parser_hci_cmd_create_conn(struct event_t *e, const void *data)
 		to_str(p->pscan_rep_mode));
 	g_hash_table_insert(e->attributes, make_str("pscan_mode"),
 		to_str(p->pscan_mode));
-//	g_hash_table_insert(e->attributes, make_str("dev_class"),
-//		make_str(p->pscan_mode));
 	g_hash_table_insert(e->attributes, make_str("Clock offset"),
 		to_str(p->clock_offset));
 	g_hash_table_insert(e->attributes, make_str("role_switch"),
@@ -76,7 +74,7 @@ parser_hci_cmd_accept_conn_request(struct event_t *e, const void *data)
 {
 	struct bt_hci_cmd_accept_conn_request *p;
 	p = (struct bt_hci_cmd_accept_conn_request *) data;
-	
+
 	/* It's a device connection  */
 	e->is_device_connection = TRUE;
 	/* Address */
@@ -86,7 +84,7 @@ parser_hci_cmd_accept_conn_request(struct event_t *e, const void *data)
 	/* Atributtes */
 	g_hash_table_insert(e->attributes, make_str("Role"),
 		to_str(p->role));
-	
+
 }
 void parser_command(struct event_t *e, const void *data, uint8_t opcode)
 {
@@ -97,18 +95,18 @@ void parser_command(struct event_t *e, const void *data, uint8_t opcode)
 		case BT_HCI_CMD_ACCEPT_CONN_REQUEST:
 			parser_hci_cmd_accept_conn_request(e, data);
 			break;
-	}	
+	}
 }
 
 void parser_hci_evt_inquiry_result(struct event_t *e, const void *data)
 {
 	struct bt_hci_evt_inquiry_result *p;
 	p = (struct bt_hci_evt_inquiry_result *) data;
-	
+
 	/* Address */
 	ba2str(&p->bdaddr, e->device_address);
 	e->has_device = TRUE;
-	
+
 	/* Atributtes */
 	g_hash_table_insert(e->attributes, make_str("Number of Response"),
 		to_str(p->num_resp));
@@ -120,18 +118,18 @@ void parser_hci_evt_inquiry_result(struct event_t *e, const void *data)
 		to_str(p->pscan_mode));
 	g_hash_table_insert(e->attributes, make_str("Clock offset"),
 		to_str(p->clock_offset));
-	
+
 }
 
 void parser_hci_evt_ext_inquiry_result(struct event_t *e, const void *data)
 {
 	struct bt_hci_evt_ext_inquiry_result *p;
 	p = (struct bt_hci_evt_ext_inquiry_result *) data;
-	
+
 	/* Address */
 	ba2str(&p->bdaddr, e->device_address);
 	e->has_device = TRUE;
-	
+
 	/* Atributtes */
 	g_hash_table_insert(e->attributes, make_str("Number of Response"),
 		to_str(p->num_resp));
@@ -155,5 +153,5 @@ void parser_event(struct event_t *e, const void *data, uint8_t opcode)
 		case BT_HCI_EVT_EXT_INQUIRY_RESULT:
 			parser_hci_evt_ext_inquiry_result(e, data);
 			break;
-	}	
+	}
 }

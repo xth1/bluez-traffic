@@ -45,32 +45,32 @@ static GtkWidget *device_filters_dialog = NULL;
 void on_device_dialog_response(GtkWidget *widget, GdkEventButton *mouse_event,
 				gpointer user_data)
 {
-	
+
 	GHashTable *connected_devices;
 	GHashTableIter iter;
 	GtkCheckButton *chk;
 	gpointer key, value;
 	struct device_t *d;
-	
+
 	if(devices_check == NULL)
 		return;
-	
+
 	connected_devices = data_dumped_get_connected_devices();
-	
+
 	g_hash_table_iter_init (&iter, devices_check);
-	
+
 	while (g_hash_table_iter_next (&iter, &key, &value)){
 		chk = (GtkCheckButton *) value;
-		d = (struct device_t *) g_hash_table_lookup(connected_devices, (char *) key);		
+		d = (struct device_t *) g_hash_table_lookup(connected_devices, (char *) key);
 		filter_set_active_device(d, gtk_toggle_button_get_active(chk));
 	}
-	
+
 	data_dumped_update();
 
 	/* Free resourses */
 	gtk_widget_destroy(device_filters_dialog);
 	device_filters_dialog = NULL;
-	
+
 	g_hash_table_destroy(devices_check);
 	devices_check = NULL;
 }
@@ -79,21 +79,21 @@ void create_device_filters_dialog(GtkWidget *window)
 {
 	GtkWidget *dialog, *label, *content_area;
 	GtkWidget *check;
-	
+
 	GHashTable *connected_devices;
-	
+
 	char buff[256];
 	gpointer key, value;
 	GHashTableIter iter;
 	struct device_t *d;
-	
+
 	gboolean is_active;
-   
+
 	if(devices_check != NULL || device_filters_dialog != NULL)
 		return;
-	
+
 	devices_check = g_hash_table_new (g_str_hash, g_str_equal);
-	
+
 	connected_devices = data_dumped_get_connected_devices();
 
 	device_filters_dialog = gtk_dialog_new_with_buttons ("Devices fiters",
@@ -106,17 +106,17 @@ void create_device_filters_dialog(GtkWidget *window)
 	label = gtk_label_new ("Devices");
 	gtk_container_add (GTK_CONTAINER (content_area), label);
 
-   /* Add devices check box */
+	/* Add devices check box */
 	g_hash_table_iter_init (&iter, connected_devices);
-	
+
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		d = (struct device_t *) value;
 		sprintf(buff,"%s: %s", d->address, d->name);
 		check =  gtk_check_button_new_with_label(buff);
-		
+
 		is_active = filter_is_device_active(d);
-		
+
 		gtk_toggle_button_set_active(check, is_active);
 		g_hash_table_insert(devices_check, d->address, check);
 		gtk_container_add (GTK_CONTAINER (content_area), check);

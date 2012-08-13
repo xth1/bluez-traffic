@@ -126,7 +126,6 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 	char aux[80];
 	uint16_t i,j;
 	int has_address = 0;
-	
 	strcpy(out, "");
 
 	if (!len)
@@ -145,19 +144,8 @@ void packet_hexdump_to_string(const unsigned char *buf, uint16_t len,
 			sprintf(aux,"%c%s\n", ' ', str);
 			strcat(out,aux);
 			str[0] = ' ';
-			/*take address*/
-			if(!has_address){
-				for(j = 0; j < 17;j++){
-					adr[j] = str[17 - j];
-				}
-				adr[18]='\0';
-				has_address = 1;
-				
-				printf("HEX Address %s %s\n",str, adr);
-			}
-			 
 		}
-		
+
 	}
 
 	if (i % 16 > 0) {
@@ -238,11 +226,11 @@ int packet_control(struct timeval *tv, uint16_t index, uint16_t opcode,
 	e->adapter_index = index;
 
 	packet_hexdump_to_string(data, size, e->data,address);
-	
+
 	e->type = opcode;
 
 	control_message(opcode, data, size, e);
-	
+
 	data_dumped_add_event(e);
 
 	return 0;
@@ -617,7 +605,7 @@ void packet_hci_event(struct event_t *e,
 			const void *data, uint16_t size)
 {
 	e->comunication_type = EVENT_OUTPUT;
-	
+
 	const hci_event_hdr *hdr = data;
 
 	if (size < HCI_EVENT_HDR_SIZE) {
@@ -631,7 +619,7 @@ void packet_hci_event(struct event_t *e,
 
 	data += HCI_EVENT_HDR_SIZE;
 	size -= HCI_EVENT_HDR_SIZE;
-	
+
 	parser_event(e, data, hdr->evt);
 
 	packet_hexdump(data, size);

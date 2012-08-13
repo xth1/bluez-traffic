@@ -21,6 +21,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+
 void parser_event(struct event_t *e, const void *data, uint8_t opcode);
 void parser_command(struct event_t *e, const void *data, uint8_t opcode);

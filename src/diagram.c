@@ -20,7 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+
 #include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gdk/gdkkeysyms.h>
@@ -84,8 +84,8 @@ static void on_clear(CrItem *group)
         g_list_foreach(group->items, (GFunc) do_remove, group);
 }
 
-gboolean
-on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+gboolean on_key_press (GtkWidget *widget, GdkEventKey *event,
+				gpointer user_data)
 {
 	switch(event->keyval)
 	{
@@ -101,7 +101,7 @@ on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 }
 
 gboolean diagram_update(GArray *events, int size, GHashTable *devices)
-{	
+{
 	struct event_t *e;
 	struct device_t *d;
 
@@ -114,7 +114,7 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 
 	gpointer key, value;
 	GHashTableIter iter;
-	
+
 	/* Set global variables */
 	events_list = events;
 	events_size = size;
@@ -129,7 +129,6 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	p.y = EVENT_BOX_TOP_MARGIN;
 	events_diagram = make_all_events(root, events, event_callback, size,
 							p, EVENT_BOX_W, EVENT_BOX_H);
-	
 
 	/* Make all devices timeline */
 	line_size = events_size * EVENT_BOX_H + EVENT_BOX_TOP_MARGIN;
@@ -142,12 +141,11 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	/* Make all links */
 	/* Half of EVENT_BOX_W to use  CrCanvas positioning system */
 	make_all_links(root, events_diagram, devices_diagram, EVENT_BOX_W / 2);
-	
-	printf("update %p\n", root);
+
 	return TRUE;
 }
 
-GtkWidget *create_diagram(int param, int width, int height, 
+GtkWidget *create_diagram(int param, int width, int height,
 							event_diagram_callback ev_callback)
 {
 	CrZoomer *zoomer;
@@ -162,7 +160,7 @@ GtkWidget *create_diagram(int param, int width, int height,
 				"auto_scale", FALSE,
 				"maintain_center", TRUE,
 				"repaint_mode", TRUE,
-			       	NULL);
+				NULL);
 
 	cr_canvas_set_scroll_factor(CR_CANVAS(diagram), 3, 3);
 
@@ -176,7 +174,7 @@ GtkWidget *create_diagram(int param, int width, int height,
 
 	/* Get root item */
 	g_object_get(diagram, "root", &root);
-	
+
 	g_signal_connect (G_OBJECT (diagram), "key_press_event",
 					G_CALLBACK (on_key_press), NULL);
 

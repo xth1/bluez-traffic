@@ -325,6 +325,7 @@ static void mgmt_device_connected(uint16_t len, const void *buf,
 	sprintf(e->type_str,"@ Device Connected");
 	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
+	e->is_device_connection = TRUE;
 
 	/* Add attributes */
 	sprintf(buff, "0x%4.4x", flags);
@@ -356,6 +357,7 @@ static void mgmt_device_disconnected(uint16_t len, const void *buf,
 
 	packet_hexdump(buf, len);
 	/* Set */
+	e->is_device_connection = TRUE;
 	sprintf(e->type_str,"@ Device Disconnected");
 	sprintf(e->name,"Address: %s (%d)", str, ev->addr.type);
 	strcpy(e->device_address, str);
@@ -530,6 +532,7 @@ static void mgmt_auth_failed(uint16_t len, const void *buf,
 					str, ev->addr.type, ev->status);
 
 	buf += sizeof(*ev);
+	len -= sizeof(*ev);
 	len -= sizeof(*ev);
 
 	packet_hexdump(buf, len);

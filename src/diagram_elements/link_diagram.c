@@ -20,7 +20,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+
 #include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
@@ -59,7 +59,7 @@ void add_circle(CrItem *group, struct point p)
 {
 	CrItem *circle;
 	cr_ellipse_new(group, p.x , p.y,CIRCLE_RADIUS,CIRCLE_RADIUS, 0,
-					"outline_color_rgba", CIRCLE_COLOR, 
+					"outline_color_rgba", CIRCLE_COLOR,
 					"line_width", 1.5,
 					NULL);
 }
@@ -67,175 +67,174 @@ void add_circle(CrItem *group, struct point p)
 void add_comunication_link(CrItem *group, struct point p1, struct point p2, int comunication_type)
 {
 	CrItem *link;
-	
+
 	unsigned long long int color;
-	
+
 	if(comunication_type == EVENT_CONNECTION)
 		color = LINK_CONNECTION_COLOR;
 	else if(comunication_type == EVENT_INPUT)
 		color = LINK_RIGHT_COLOR;
 	else if(comunication_type == EVENT_OUTPUT)
 		color = LINK_LEFT_COLOR;
-	
-	link = cr_vector_new(group, p1.x , p2.y, 
+
+	link = cr_vector_new(group, p1.x , p2.y,
 					p2.x - p1.x, p2.y - p1.y,
 					"outline_color_rgba", color,
 					"fill_color_rgba", color,
 					"end_scaleable", FALSE,
 					"line_scaleable", FALSE,
-					"line_width", 1.5, 
+					"line_width", 1.5,
 					NULL);
-		
+
 	/*add_circle(link, p1);*/
 	if(comunication_type == EVENT_CONNECTION)
 		add_circle(group, p2);
 	else
-		cr_arrow_new(link, 0, NULL);	
+		cr_arrow_new(link, 0, NULL);
 }
 
-void make_all_comunication_links(CrItem *group,GHashTable *events_diagram, 
+void make_all_comunication_links(CrItem *group,GHashTable *events_diagram,
 					GHashTable *devices_diagram, int event_box_width)
 {
 	gpointer key, value;
 	GHashTableIter iter;
-	
+
 	struct event_t *e;
 	struct device_t *d;
-	
+
 	struct event_diagram *ed;
 	struct device_diagram *dd;
-	
+
 	struct point p_ev, p_dev;
-	
+
 	struct point p1, p2, p3, p4;
-	
+
 	struct point *pp;
-	
+
 	gpointer pointer;
-	
+
 	char *address_key;
-	
+
 	g_hash_table_iter_init (&iter, events_diagram);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
-		
+
 		ed = (struct event_diagram *) value;
-		
+
 		e = ed->event;
-		
+
 		if(e->has_device == FALSE)
 			continue;
-		
+
 		dd = g_hash_table_lookup(devices_diagram, e->device_address);
-		if(e->is_device_connection == FALSE){ 
+		if(e->is_device_connection == FALSE){
 			/* draw comunicacion link */
 			p_ev = ed->position;
-			
+
 			p_ev.x += event_box_width;
-			
+
 			p_dev.x = dd->position.x;
 			p_dev.y = ed->position.y;
-			
-			if(e->comunication_type == EVENT_INPUT || 
+
+			if(e->comunication_type == EVENT_INPUT ||
 				e->comunication_type == EVENT_CONNECTION)
 					add_comunication_link(group, p_ev, p_dev, e->comunication_type);
 			else
 					add_comunication_link(group, p_dev, p_ev, e->comunication_type);
-		}	
+		}
 	}
 }
 
-void add_connection_link(CrItem *group, struct point p1, struct point p2, 
+void add_connection_link(CrItem *group, struct point p1, struct point p2,
 						struct point p3, struct point p4, gboolean has_end_point)
 {
 	CrItem *link1, *link2;
 	CrItem *upper_line;
 	guint color;
-	
+
 /*	printf("Add connection link \n");
-	
-	printf("[%d %d]\n",p1.x, p1.y);	
+
+	printf("[%d %d]\n",p1.x, p1.y);
 	printf("[%d %d]\n",p2.x, p2.y);
 	printf("[%d %d]\n",p3.x, p3.y);
 	printf("[%d %d]\n",p4.x, p4.y);
-*/	
+*/
 	/* Draw connection link 1 */
 	if(has_end_point){
-		link1 = cr_vector_new(group, p1.x , p1.y, 
+		link1 = cr_vector_new(group, p1.x , p1.y,
 					p3.x - p1.x, p3.y - p1.y,
 					"outline_color_rgba", LINK_CONNECTION_COLOR,
 					"end_scaleable", FALSE,
 					"line_scaleable", FALSE,
-					"line_width", 1.5, 
+					"line_width", 1.5,
 					NULL);
 	}
-	
+
 	/* Draw connection link 2 */
-	link2 = cr_vector_new(group, p2.x , p2.y, 
+	link2 = cr_vector_new(group, p2.x , p2.y,
 				p4.x - p2.x, p4.y - p4.y,
 				"outline_color_rgba", LINK_CONNECTION_COLOR,
 				"end_scaleable", FALSE,
 				"line_scaleable", FALSE,
-				"line_width", 1.5, 
+				"line_width", 1.5,
 				NULL);
-	
+
 	/* Draw line up timeline */
-	upper_line = cr_vector_new(group, p3.x , p3.y, 
+	upper_line = cr_vector_new(group, p3.x , p3.y,
 				p4.x - p3.x, p4.y - p3.y,
 				"outline_color_rgba", LINK_CONNECTION_UPPER_COLOR,
 				"end_scaleable", FALSE,
 				"line_scaleable", FALSE,
-				"line_width", 1.5, 
+				"line_width", 1.5,
 				NULL);
-	
+
 	/* Draw circles */
 	add_circle(group, p3);
-	add_circle(group, p4);	
-	
+	add_circle(group, p4);
+
 }
 
-void make_all_connection_links(CrItem *group, GHashTable *events_diagram, 
+void make_all_connection_links(CrItem *group, GHashTable *events_diagram,
 					GHashTable *devices_diagram, int event_box_width)
 {
 	gpointer key, value;
 	GHashTableIter iter;
-	
+
 	GHashTable *device_connection;
-	
+
 	struct event_t *e;
 	struct device_t *d;
-	
+
 	struct event_diagram *ed;
 	struct device_diagram *dd;
-	
+
 	struct point p_ev, p_dev;
-	
+
 	struct point p1, p2, p3, p4;
-	
+
 	struct point *pp;
-	
+
 	gpointer pointer;
-	
+
 	char *address_key;
-	
-	device_connection = g_hash_table_new(g_str_hash, g_str_equal); 
-		
+
+	device_connection = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_iter_init (&iter, events_diagram);
 	while (g_hash_table_iter_next (&iter, &key, &value))
 	{
 		ed = (struct event_diagram *) value;
-		
+
 		e = ed->event;
-		
+
 		if(e->has_device == FALSE)
 			continue;
-		
+
 		dd = g_hash_table_lookup(devices_diagram, e->device_address);
-		
-		if(e->is_device_connection){ 
+
+		if(e->is_device_connection){
 			/* draw connection link */
 
-			pointer = g_hash_table_lookup(device_connection, e->device_address);	
+			pointer = g_hash_table_lookup(device_connection, e->device_address);
 
 			if(pointer != NULL){
 
@@ -275,7 +274,7 @@ void make_all_connection_links(CrItem *group, GHashTable *events_diagram,
 	{
 		if( value == NULL  || key == NULL)
 			continue;
-		
+
 		address_key = (char *) key;
 		pp = (struct point *) value;
 
@@ -299,7 +298,7 @@ void make_all_connection_links(CrItem *group, GHashTable *events_diagram,
 
 		g_hash_table_remove(device_connection, e->device_address);
 	}
-	
+
 	g_hash_table_key_destroy(device_connection);
 }
 
@@ -312,12 +311,12 @@ void add_sequence_link(CrItem *group, struct point p1, struct point p2)
 }
 */
 
-void make_all_links(CrItem *group,GHashTable *events_diagram, 
+void make_all_links(CrItem *group,GHashTable *events_diagram,
 				GHashTable *devices_diagram, int event_box_width)
 {
-	make_all_connection_links(group, events_diagram, devices_diagram, 
+	make_all_connection_links(group, events_diagram, devices_diagram,
 				event_box_width);
 
-	make_all_comunication_links(group, events_diagram, devices_diagram, 
+	make_all_comunication_links(group, events_diagram, devices_diagram,
 				event_box_width);
 }

@@ -154,6 +154,8 @@ void make_attributes_pane()
 
 }
 
+/* Notebook */
+
 void make_notebook()
 {
 	gtk_label_set_selectable(hexdump_label, TRUE);
@@ -173,7 +175,9 @@ GtkWidget *event_details_init()
 	GtkWidget *packet_frame_scroll, *packet_frame_details;
 	GtkWidget *hbox;
 	GtkWidget *vbox;
-
+	GtkWidget *info_pane;
+	GtkRequisition req;
+	
 	/* Init*/
 	hbox = gtk_hbox_new(FALSE, 1);
 
@@ -181,7 +185,8 @@ GtkWidget *event_details_init()
 
 	packet_frame = gtk_frame_new("Event details");
 	packet_frame_details = gtk_frame_new("");
-
+	info_pane = gtk_frame_new("");
+	
 	make_notebook();
 
 	/* Event type label */
@@ -202,11 +207,16 @@ GtkWidget *event_details_init()
 
 	gtk_box_pack_start(GTK_BOX(hbox), ev_type_label, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), ev_name_label, TRUE, TRUE, 0);
-
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, FALSE, 0);
+	
+	gtk_container_add(GTK_CONTAINER(info_pane), hbox);
+	req.width = 400; req.height = 200;
+	gtk_widget_size_request(info_pane, &req);
+	
+	gtk_container_add(GTK_CONTAINER(packet_frame_details), vbox);
+	gtk_box_pack_start(GTK_BOX(vbox), info_pane, TRUE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 
-	gtk_container_add(GTK_CONTAINER(packet_frame_details), vbox);
+	
 
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(packet_frame_scroll),
 								packet_frame_details);

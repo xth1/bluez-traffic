@@ -136,7 +136,8 @@ gboolean diagram_update(GArray *events, int size, GHashTable *devices)
 	p.x = EVENT_BOX_W / 2 + 6 * SPACE;
 	p.y = 0;
 
-	devices_diagram = make_all_devices_timeline(root, devices_hash, p,																line_size);
+	devices_diagram = make_all_devices_timeline(root, devices_hash, p,
+						line_size);
 
 	/* Make all links */
 	/* Half of EVENT_BOX_W to use  CrCanvas positioning system */

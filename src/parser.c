@@ -170,3 +170,15 @@ void parser_hcl_data(struct event_t *e, const void *data, const hci_acl_hdr *hdr
 		to_str(flags));
 
 }
+
+void parser_sco_data(struct event_t *e, const void *data, const hci_sco_hdr *hdr)
+{
+	uint16_t handle = btohs(hdr->handle);
+	uint8_t flags = acl_flags(handle);
+
+	g_hash_table_insert(e->attributes, make_str("Handle"),
+		to_str(handle));
+	g_hash_table_insert(e->attributes, make_str("Flags"),
+		to_str(flags));
+
+}

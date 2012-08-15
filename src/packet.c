@@ -192,11 +192,17 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		break;
 	case MONITOR_ACL_TX_PKT:
 		packet_hci_acldata(e, tv, index, false, data, size);
+		break;
 	case MONITOR_ACL_RX_PKT:
 		packet_hci_acldata(e, tv, index, true, data, size);
-
+		break;
+	case MONITOR_SCO_TX_PKT:
+		packet_hci_scodata(e, tv, index, false, data, size);
+		break;
+	case MONITOR_SCO_RX_PKT:
+		packet_hci_scodata(e, tv, index, true, data, size);
+		break;
 	}
-
 	printf("[hci%d] op 0x%2.2x\n", index, opcode);
 
 	packet_hexdump(data, size);
@@ -641,16 +647,16 @@ void packet_hci_acldata(struct event_t *e, struct timeval *tv, uint16_t index,
 	e->comunication_type = EVENT_OUTPUT;
 
 	if (size < HCI_ACL_HDR_SIZE) {
-		sprintf(e->type_str, "* Malformed ACL Data %s packet\n", in ? "RX" : "TX");
+		sprintf(e->type_str, "* Malformed ACL Data %s packet", in ? "RX" : "TX");
 		return;
 	}
 
 	sprintf(e->type_str,"%c HCL Data",in ? '>' : '<');
 
-	sprintf(e->name,"handle %d flags 0x%2.2x dlen %d\n",
+	sprintf(e->name,"handle %d flags 0x%2.2x dlen %d",
 		       acl_handle(handle), flags, dlen);
 
-	printf("%c ACL Data: handle %d flags 0x%2.2x dlen %d\n",
+	printf("%c ACL Data: handle %d flags 0x%2.2x dlen %d",
 			in ? '>' : '<', acl_handle(handle), flags, dlen);
 
 	data += HCI_ACL_HDR_SIZE;
@@ -659,5 +665,37 @@ void packet_hci_acldata(struct event_t *e, struct timeval *tv, uint16_t index,
 
 /*	if (filter_mask & PACKET_FILTER_SHOW_ACL_DATA)
 		packet_hexdump(data, size);
+*/
+}
+
+void packet_hci_scodata(struct event_t *e, struct timeval *tv, uint16_t index, bool in,
+					const void *data, uint16_t size)
+{
+	const hci_sco_hdr *hdr = data;
+	uint16_t handle = btohs(hdr->handle);
+	uint8_t flags = acl_flags(handle);
+
+
+	if (size < HCI_SCO_HDR_SIZE) {
+		sprintf(e->type_str, "* Malformed SCO Data %s packet", in ? "RX" : "TX");
+		return;
+	}
+
+	printf("%c SCO Data: handle %d flags 0x%2.2x dlen %d\n",
+			in ? '>' : '<', acl_handle(handle), flags, hdr->dlen);
+
+	sprintf(e->type_str,"%c SCO Data",in ? '>' : '<');
+
+	sprintf(e->name,"handle %d flags 0x%2.2x",
+		       acl_handle(handle), flags);
+
+
+	data += HCI_SCO_HDR_SIZE;
+	size -= HCI_SCO_HDR_SIZE;
+	parser_sco_data(e, data, hdr);
+
+/*	if (filter_mask & PACKET_FILTER_SHOW_SCO_DATA)
+		packet_hexdump(data, size);
+
 */
 }

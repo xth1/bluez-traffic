@@ -155,3 +155,18 @@ void parser_event(struct event_t *e, const void *data, uint8_t opcode)
 			break;
 	}
 }
+
+void parser_hcl_data(struct event_t *e, const void *data, const hci_acl_hdr *hdr)
+{
+	uint16_t handle = btohs(hdr->handle);
+	uint16_t dlen = btohs(hdr->dlen);
+	uint8_t flags = acl_flags(handle);
+
+	g_hash_table_insert(e->attributes, make_str("Handle"),
+		to_str(handle));
+	g_hash_table_insert(e->attributes, make_str("dlen"),
+		to_str(dlen));
+	g_hash_table_insert(e->attributes, make_str("Flags"),
+		to_str(flags));
+
+}

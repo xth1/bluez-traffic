@@ -185,11 +185,16 @@ int packet_monitor(struct timeval *tv, uint16_t index, uint16_t opcode,
 		ba2str(&ni->bdaddr, str);
 		break;
 	case MONITOR_COMMAND_PKT:
-		packet_hci_command(e ,tv, index, data, size);
+		packet_hci_command(e, tv, index, data, size);
 		break;
 	case MONITOR_EVENT_PKT:
 		packet_hci_event(e, tv, index, data, size);
 		break;
+	case MONITOR_ACL_TX_PKT:
+		packet_hci_acldata(e, tv, index, false, data, size);
+	case MONITOR_ACL_RX_PKT:
+		packet_hci_acldata(e, tv, index, true, data, size);
+
 	}
 
 	printf("[hci%d] op 0x%2.2x\n", index, opcode);
@@ -623,4 +628,36 @@ void packet_hci_event(struct event_t *e,
 	parser_event(e, data, hdr->evt);
 
 	packet_hexdump(data, size);
+}
+
+void packet_hci_acldata(struct event_t *e, struct timeval *tv, uint16_t index,
+			bool in, const void *data, uint16_t size)
+{
+	const hci_acl_hdr *hdr = data;
+	uint16_t handle = btohs(hdr->handle);
+	uint16_t dlen = btohs(hdr->dlen);
+	uint8_t flags = acl_flags(handle);
+
+	e->comunication_type = EVENT_OUTPUT;
+
+	if (size < HCI_ACL_HDR_SIZE) {
+		sprintf(e->type_str, "* Malformed ACL Data %s packet\n", in ? "RX" : "TX");
+		return;
+	}
+
+	sprintf(e->type_str,"%c HCL Data",in ? '>' : '<');
+
+	sprintf(e->name,"handle %d flags 0x%2.2x dlen %d\n",
+		       acl_handle(handle), flags, dlen);
+
+	printf("%c ACL Data: handle %d flags 0x%2.2x dlen %d\n",
+			in ? '>' : '<', acl_handle(handle), flags, dlen);
+
+	data += HCI_ACL_HDR_SIZE;
+	size -= HCI_ACL_HDR_SIZE;
+	parser_hcl_data(e, data, hdr);
+
+/*	if (filter_mask & PACKET_FILTER_SHOW_ACL_DATA)
+		packet_hexdump(data, size);
+*/
 }

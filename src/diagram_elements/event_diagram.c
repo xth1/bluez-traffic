@@ -20,9 +20,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+
 #define EVENT_DIAGRAM_HEADER 1
- 
 #include <math.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>

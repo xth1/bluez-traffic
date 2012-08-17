@@ -39,6 +39,7 @@
 #include <cr-inverse.h>
 #include <cr-arrow.h>
 
+
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 
@@ -53,6 +54,38 @@
 #define EVENT_SELECTED_BG_COLOR 0xefefefff
 #define GAP_SIZE 8
 #define SPACE 10
+
+#define MONITOR_NEW_INDEX	0
+#define MONITOR_DEL_INDEX	1
+#define MONITOR_COMMAND_PKT	2
+#define MONITOR_EVENT_PKT	3
+#define MONITOR_ACL_TX_PKT	4
+#define MONITOR_ACL_RX_PKT	5
+#define MONITOR_SCO_TX_PKT	6
+#define MONITOR_SCO_RX_PKT	7
+
+#define CONTROL_BG_COLOR 0xfffdb1ff
+#define CONTROL_SELECTED_BG_COLOR 0xfaf686ff
+static guint event_bg_color[] = {
+								 0xeeffeeff, /* MONITOR_NEW_INDEX*/
+								 0xdededeff, /* MONITOR_DEL_INDEX*/
+								 0xffeeeeff, /* MONITOR_COMMAND_PKT */
+								 0xeeeeffff, /* MONITOR_EVENT_PKT */
+								 0xeeffffff, /* MONITOR_ACL_TX_PKT */
+								 0xffffeeff, /* MONITOR_ACL_RX_PKT */
+								 0xeeeeeeff, /* MONITOR_SCO_TX_PKT */
+								 0xefefefff /* MONITOR_SCO_RX_PKT */
+								};
+static guint event_selected_bg_color[] = {
+								 0xddffddff, /* MONITOR_NEW_INDEX*/
+								 0xcececeff, /* MONITOR_DEL_INDEX*/
+								 0xffddddff, /* MONITOR_COMMAND_PKT */
+								 0xddddffff, /* MONITOR_EVENT_PKT */
+								 0xddffffff, /* MONITOR_ACL_TX_PKT */
+								 0xffffddff, /* MONITOR_ACL_RX_PKT */
+								 0xddddddff, /* MONITOR_SCO_TX_PKT */
+								 0xdfdfdfff /* MONITOR_SCO_RX_PKT */
+								};
 
 static CrItem *selected_event = NULL;
 
@@ -72,16 +105,32 @@ void events_diagram_value_destroy(gpointer data)
 		free(data);
 }
 
+guint get_event_bg_color(struct event_t *e)
+{
+	if(e->socket == HCI_CHANNEL_MONITOR)
+		return event_bg_color[e->type];
+	return CONTROL_BG_COLOR;
+}
+
+guint get_event_selected_bg_color(struct event_t *e)
+{
+	if(e->socket == HCI_CHANNEL_MONITOR)
+		return event_selected_bg_color[e->type];
+	return CONTROL_SELECTED_BG_COLOR;
+}
+
 static gboolean
 on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix, 
                 CrItem *pick_item, gpointer *user_data)
 {
 	static CrItem *last_item = NULL;
+	static struct event_t *last_event = NULL;
 	static double init_x, init_y;
 	static int last_msec = 0;
 	guint color;
 	
 	struct event_diagram *ed = (struct event_diagram *)user_data;
+	struct event_t *e = ed->event;
 
 	switch (event->type) {
 	case GDK_BUTTON_PRESS:
@@ -90,11 +139,16 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 			if(item != last_item){
 				if(selected_event != NULL){
 					g_object_set(selected_event, "fill_color_rgba", 
-								EVENT_BG_COLOR, NULL);
+								get_event_bg_color(last_event),
+								"line_width", 0.5,
+								"outline_color_rgba", get_event_bg_color(last_event), NULL);
 					
 				}
 				g_object_set(item, "fill_color_rgba", 
-							EVENT_SELECTED_BG_COLOR, NULL);
+							get_event_selected_bg_color(e), 
+							"line_width", 2.5,
+							"outline_color_rgba", 0xcdcdcdff,
+							NULL);
 				selected_event = item;
 				
 				/* Call event callback function */
@@ -103,6 +157,7 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 			}
 			
 			last_item = item;
+			last_event = e;
 			init_x = event->button.x;
 			init_y = event->button.y;
 			
@@ -131,6 +186,19 @@ struct point get_pos(struct point p, struct point ref)
 	return r; 
 }
 
+guint select_event_bg_color(int opcode)
+{
+	guint color;
+	switch (opcode) {
+
+		default:
+			color = 0xffffffff;
+	}
+	
+	printf("Opcode %u color %x\n",opcode,color);
+	return color;
+}
+
 static void make_event(CrItem *group,struct event_t *e, 
 						struct point p,double w, double h)
 {
@@ -153,7 +221,8 @@ static void make_event(CrItem *group,struct event_t *e,
 	
 	time_t t;
 	struct tm tm;
-	int size;	
+	int size;
+	
 	
 	/* store event diagram */
 	ed = g_new(struct event_diagram, 1);
@@ -170,11 +239,12 @@ static void make_event(CrItem *group,struct event_t *e,
 	dim.y = h;
 
 	/* Draw rectangle */
+	color = get_event_bg_color(e);
 	rectangle = cr_rectangle_new(group, p.x, p.y, w, h,
                         "line_scaleable", FALSE,
                         "line_width", 0.5,
-                        "outline_color_rgba", 0xedededff,
-                        "fill_color_rgba", EVENT_BG_COLOR,
+                        "outline_color_rgba", color,
+                        "fill_color_rgba", color,
                         "data","data here",
                         NULL);
         

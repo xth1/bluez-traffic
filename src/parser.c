@@ -141,6 +141,8 @@ void parser_hci_evt_ext_inquiry_result(struct event_t *e, const void *data)
 		to_str(p->clock_offset));
 	g_hash_table_insert(e->attributes, make_str("rssi"),
 		to_str(p->rssi));
+		
+	printf("Name? %s\n",(char *)p->data);
 }
 
 

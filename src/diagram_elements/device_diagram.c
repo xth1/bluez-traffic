@@ -128,7 +128,7 @@ GHashTable *make_all_devices_timeline(CrItem *group,GHashTable *devices_hash,
 		d = (struct device_t *) value;
 		make_device_timeline(group, d, p, line_size);
 
-		p.x += 6 * SPACE;
+		p.x += 12 * SPACE;
 	}
 
 	return devices_diagram;

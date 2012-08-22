@@ -119,7 +119,7 @@ guint get_event_selected_bg_color(struct event_t *e)
 }
 
 static gboolean
-on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix, 
+on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
                 CrItem *pick_item, gpointer *user_data)
 {
 	static CrItem *last_item = NULL;
@@ -127,39 +127,39 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 	static double init_x, init_y;
 	static int last_msec = 0;
 	guint color;
-	
+
 	struct event_diagram *ed = (struct event_diagram *)user_data;
 	struct event_t *e = ed->event;
 
 	switch (event->type) {
 	case GDK_BUTTON_PRESS:
 		if (event->button.button == 1) {
-			
+
 			if(item != last_item){
 				if(selected_event != NULL){
-					g_object_set(selected_event, "fill_color_rgba", 
+					g_object_set(selected_event, "fill_color_rgba",
 								get_event_bg_color(last_event),
 								"line_width", 0.5,
 								"outline_color_rgba", get_event_bg_color(last_event), NULL);
-					
+
 				}
-				g_object_set(item, "fill_color_rgba", 
-							get_event_selected_bg_color(e), 
+				g_object_set(item, "fill_color_rgba",
+							get_event_selected_bg_color(e),
 							"line_width", 2.5,
 							"outline_color_rgba", 0xcdcdcdff,
 							NULL);
 				selected_event = item;
-				
+
 				/* Call event callback function */
 				event_callback(ed, EVENT_SELECTED);
 
 			}
-			
+
 			last_item = item;
 			last_event = e;
 			init_x = event->button.x;
 			init_y = event->button.y;
-			
+
 			return TRUE;
 		}
 
@@ -178,11 +178,11 @@ on_event_box_clicked(CrItem *item, GdkEvent *event, cairo_matrix_t *matrix,
 struct point get_pos(struct point p, struct point ref)
 {
 	struct point r;
-	
+
 	r.x = -1 * ref.x / 2 + p.x;
 	r.y = -1 * ref.y / 2 + p.y;
-	
-	return r; 
+
+	return r;
 }
 
 guint select_event_bg_color(int opcode)
@@ -193,12 +193,12 @@ guint select_event_bg_color(int opcode)
 		default:
 			color = 0xffffffff;
 	}
-	
+
 	printf("Opcode %u color %x\n",opcode,color);
 	return color;
 }
 
-static void make_event(CrItem *group,struct event_t *e, 
+static void make_event(CrItem *group,struct event_t *e,
 						struct point p,double w, double h)
 {
 	CrItem *rectangle;
@@ -209,30 +209,30 @@ static void make_event(CrItem *group,struct event_t *e,
 	CrItem *name_text;
 	guint color;
 	char buff[512];
-	
+
 	struct point pp;
 	struct point ppn;
 	struct point dim;
-	
+
 	struct event_diagram *ed;
-	
+
 	int *key;
-	
+
 	time_t t;
 	struct tm tm;
 	int size;
-	
-	
+
+
 	/* store event diagram */
 	ed = g_new(struct event_diagram, 1);
-	
+
 	ed->position = p;
 	ed->event = e;
-	
+
 	key = g_new(int, 1);
 	*key = e->seq_number;
 	g_hash_table_insert(events_diagram, key, ed);
-	
+
 	/* Set dimension */
 	dim.x = w;
 	dim.y = h;
@@ -246,16 +246,16 @@ static void make_event(CrItem *group,struct event_t *e,
                         "fill_color_rgba", color,
                         "data","data here",
                         NULL);
-        
+
 	/* Print date */
 	t = (e->tv).tv_sec;
 	localtime_r(&t, &tm);
-	
+
 	sprintf(buff,"%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
 							tm.tm_mday);
 	size = strlen(buff);
-	
-	pp.x = TEXT_LEFT_MARGIN; 
+
+	pp.x = TEXT_LEFT_MARGIN;
 	pp.y = TEXT_TOP_MARGIN;
 	ppn = get_pos(pp, dim);
 	date_text = cr_text_new(rectangle, ppn.x, ppn.y, buff,
@@ -264,12 +264,11 @@ static void make_event(CrItem *group,struct event_t *e,
                         "anchor", GTK_ANCHOR_NW,
                         "use-markup", TRUE,
                         "fill_color_rgba", 0x000000ffL, NULL);
-                        
 	/* Print time */
 	sprintf(buff, "%02d:%02d:%02d.%06lu ", tm.tm_hour, tm.tm_min,
 					 tm.tm_sec, (e->tv).tv_usec);
-	
-	pp.x = TEXT_LEFT_MARGIN; 
+
+	pp.x = TEXT_LEFT_MARGIN;
 	pp.y = 3 * TEXT_TOP_MARGIN;
 	ppn = get_pos(pp, dim);
 	time_text = cr_text_new(rectangle, ppn.x, ppn.y, buff,
@@ -287,7 +286,7 @@ static void make_event(CrItem *group,struct event_t *e,
 	pp.x = size * GAP_SIZE + SPACE;
 	pp.y = TEXT_TOP_MARGIN;
 	ppn = get_pos(pp, dim);
-	
+
 	adapter_index_text = cr_text_new(rectangle, ppn.x, ppn.y, buff,
                         "font", "Courier Bold 6",
                         "anchor", GTK_ANCHOR_NW,
@@ -295,23 +294,22 @@ static void make_event(CrItem *group,struct event_t *e,
                         "fill_color_rgba", 0xdd0000ffL, NULL);
 
 	size = strlen(buff);
-	
+
 	/* Print operation code */
 	if(strcmp(e->type_str, "") == 0)
 		sprintf(buff, "OPCODE: 0x%2.2x", e->type);
 	else
 		sprintf(buff, "%s", e->type_str);
-
 	pp.x += size * GAP_SIZE + SPACE;
 	pp.y = TEXT_TOP_MARGIN;
 	ppn = get_pos(pp, dim);
-	
+
 	operation_code_text = cr_text_new(rectangle, ppn.x, ppn.y, buff,
                         "font", "Courier Medium 8",
                         "anchor", GTK_ANCHOR_NW,
                         "use-markup", TRUE,
                         "fill_color_rgba", 0x3333eeffL, NULL);
-                        
+
 	/* Print name */
 	sprintf(buff, "%s", e->name);
 
@@ -325,17 +323,17 @@ static void make_event(CrItem *group,struct event_t *e,
                         "fill_color_rgba", 0x333333ffL, NULL);
 
 	/* Signal event */
-	g_signal_connect(rectangle, "event", 
+	g_signal_connect(rectangle, "event",
 					(GCallback) on_event_box_clicked, ed);
 }
 
-GHashTable *make_all_events(CrItem *group, GArray *events, 
+GHashTable *make_all_events(CrItem *group, GArray *events,
 						event_diagram_callback callback, int events_size,
 						struct point p, int w, int h)
 {
 	struct event_t *e;
 	int i;
-	
+
 	event_callback = callback;
 
 	/* Create hash table */	
@@ -344,14 +342,14 @@ GHashTable *make_all_events(CrItem *group, GArray *events,
 
 	events_diagram = g_hash_table_new_full(g_int_hash, g_int_equal,
 					events_diagram_key_destroy, events_diagram_value_destroy);
-	
+
 	for(i = 0; i < events_size; i++){
 		e = g_array_index(events, void *, i);
 		make_event(group, e, p, w, h);
-		
+
 		p.y += h;
 	}
-	
+
 	printf("End make_all_events\n");
 	return events_diagram;
 }

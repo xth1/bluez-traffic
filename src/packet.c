@@ -511,12 +511,13 @@ void packet_hci_command(struct event_t *e,
 		printf("* Malformed HCI Command packet\n");
 		return;
 	}
-	sprintf(e->type_str,"< HCI Command");
+	sprintf(e->type_str,"HCI Command");
 	sprintf(e->name,"%s (0x%2.2x) plen %d",
 				opcode2str(opcode), ogf, ocf, hdr->plen);
-	parser_command(e, data, opcode);
 	data += HCI_COMMAND_HDR_SIZE;
 	size -= HCI_COMMAND_HDR_SIZE;
+
+	parser_command(e, data, opcode);
 }
 
 static const struct {
@@ -623,7 +624,7 @@ void packet_hci_event(struct event_t *e,
 		printf("* Malformed HCI Event packet\n");
 		return;
 	}
-	sprintf(e->type_str,"> HCI Event");
+	sprintf(e->type_str,"HCI Event");
 
 	sprintf(e->name,"%s (0x%2.2x) plen %d",
 				event2str(hdr->evt), hdr->evt, hdr->plen);
@@ -651,7 +652,7 @@ void packet_hci_acldata(struct event_t *e, struct timeval *tv, uint16_t index,
 		return;
 	}
 
-	sprintf(e->type_str,"%c HCL Data",in ? '>' : '<');
+	sprintf(e->type_str,"ACL Data: %s",in ? "Input" : "Output");
 
 	sprintf(e->name,"handle %d flags 0x%2.2x dlen %d",
 		       acl_handle(handle), flags, dlen);
@@ -684,7 +685,7 @@ void packet_hci_scodata(struct event_t *e, struct timeval *tv, uint16_t index, b
 	printf("%c SCO Data: handle %d flags 0x%2.2x dlen %d\n",
 			in ? '>' : '<', acl_handle(handle), flags, hdr->dlen);
 
-	sprintf(e->type_str,"%c SCO Data",in ? '>' : '<');
+	sprintf(e->type_str,"SCO Data: %s",in ? "Input" : "Output");
 
 	sprintf(e->name,"handle %d flags 0x%2.2x",
 		       acl_handle(handle), flags);

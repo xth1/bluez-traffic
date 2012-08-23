@@ -141,10 +141,29 @@ void parser_hci_evt_ext_inquiry_result(struct event_t *e, const void *data)
 		to_str(p->clock_offset));
 	g_hash_table_insert(e->attributes, make_str("rssi"),
 		to_str(p->rssi));
-		
-	printf("Name? %s\n",(char *)p->data);
-}
 
+
+}
+void parser_hci_evt_conn_complete(struct event_t *e, const void *data)
+{
+	struct bt_hci_evt_conn_complete *p;
+	p = (struct  bt_hci_evt_conn_complete *) data;
+
+	/* Address */
+	ba2str(&p->bdaddr, e->device_address);
+	e->has_device = TRUE;
+
+	/* Atributtes */
+	g_hash_table_insert(e->attributes, make_str("status"),
+		to_str(p->status));
+	g_hash_table_insert(e->attributes, make_str("handle"),
+		to_str(p->handle));
+	g_hash_table_insert(e->attributes, make_str("link_type"),
+		to_str(p->link_type));
+	g_hash_table_insert(e->attributes, make_str("encr_mode"),
+		to_str(p->encr_mode));
+
+}
 
 void parser_event(struct event_t *e, const void *data, uint8_t opcode)
 {
@@ -154,6 +173,9 @@ void parser_event(struct event_t *e, const void *data, uint8_t opcode)
 			break;
 		case BT_HCI_EVT_EXT_INQUIRY_RESULT:
 			parser_hci_evt_ext_inquiry_result(e, data);
+			break;
+		case BT_HCI_EVT_CONN_COMPLETE:
+			parser_hci_evt_conn_complete(e, data);
 			break;
 	}
 }

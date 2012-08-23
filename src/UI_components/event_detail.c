@@ -210,7 +210,8 @@ GtkWidget *event_details_init()
 	gtk_box_pack_start(GTK_BOX(hbox), ev_name_label, TRUE, TRUE, 0);
 
 	gtk_container_add(GTK_CONTAINER(info_pane), hbox);
-	req.width = 400; req.height = 200;
+	req.width = 400;
+	req.height = 200;
 	gtk_widget_size_request(info_pane, &req);
 
 	gtk_container_add(GTK_CONTAINER(packet_frame_details), vbox);

@@ -27,9 +27,6 @@
 #include <stdlib.h>
 #include <time.h>
 /* For tests only */
-#define TEST_ADDRESS "20:00:00:01:01:21"
-#define TEST_ADDRESS2 "20:00:00:34:31:13"
-#define TEST_ADDRESS3 "20:00:00:34:43:13"
 #define INF 999999999
 
 /* Storage limit of events */
@@ -70,65 +67,6 @@ void event_attributes_value_destroy(gpointer data)
 {
 	if(data != NULL)
 		free(data);
-}
-void add_test_fields(struct event_t *e)
-{
-
-	/* For test only */
-	e->has_device = 1;
-
-	if(rand() % 3)
-		strcpy(e->device_address, TEST_ADDRESS);
-	else if(rand() % 2)
-		strcpy(e->device_address, TEST_ADDRESS2);
-	else
-		strcpy(e->device_address, TEST_ADDRESS3);
-
-	if(events_size % 2)
-		e->comunication_type = EVENT_INPUT;
-	else
-		e->comunication_type = EVENT_OUTPUT;
-
-	/* Add test connection seq */
-	if(rand() %10 == 1){
-		e->is_device_connection = TRUE;
-	}
-	else{
-		e->is_device_connection = FALSE;
-	}
-
-}
-
-void add_test_devices()
-{
-	struct device_t *d;
-
-	d = (struct device_t *) malloc(sizeof(struct device_t));
-	strcpy(d->address, TEST_ADDRESS);
-	strcpy(d->name, "Test");
-	d->is_active = TRUE;
-	d->id_initial_event = events_size;
-	d->id_least_event = -1;
-
-	data_dumped_add_device(d);
-
-	d = (struct device_t *) malloc(sizeof(struct device_t));
-	strcpy(d->address, TEST_ADDRESS2);
-	strcpy(d->name, "Test2");
-	d->is_active = TRUE;
-	d->id_initial_event = events_size;
-	d->id_least_event = -1;
-
-	data_dumped_add_device(d);
-
-	d = (struct device_t *) malloc(sizeof(struct device_t));
-	strcpy(d->address, TEST_ADDRESS3);
-	strcpy(d->name, "Test3");
-	d->is_active = TRUE;
-	d->id_initial_event = events_size;
-	d->id_least_event = -1;
-
-	data_dumped_add_device(d);
 }
 
 void data_dumped_set_update_callback(data_dumped_update_callback callback)
@@ -224,7 +162,7 @@ void data_dumped_add_event(struct event_t *e)
 		events_size++;
 	}
 
-	/*add_test_fields(e);*/
+
 	search_device_in_event(e);
 
 	data_dumped_update();
@@ -246,8 +184,4 @@ void data_dumped_init(data_dumped_update_callback callback, int ev_lim)
 	events_limit = ev_lim;
 	update_callback = callback;
 	filter_init();
-
-	/* Devices for test */
-	/* for tests only */
-	srand(time(0));
 }
